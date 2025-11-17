@@ -1,7 +1,7 @@
 app_name = "builder_erpgulf"
 app_title = "Builder ERPGulf"
 app_publisher = "ERPGulf"
-app_description = "Custom project extensions for ERPGulf"
+app_description = "Custom project extensions for ERPNext for the Gulf"
 app_email = "support@ERPGulf.com"
 app_license = "mit"
 
@@ -242,3 +242,24 @@ app_license = "mit"
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
 
+fixtures = [
+    {
+        "dt": "DocType",
+        "filters": [
+            ["custom", "=", 1],
+            ["module", "=", "Builder ERPGulf"]
+        ]
+    },
+    {
+        "dt": "Server Script",
+        "filters": [
+            ["module", "=", "Builder ERPGulf"]
+        ]
+    },
+    {
+        "dt": "Custom Field",
+        "filters": [
+            ["module", "=", "Builder ERPGulf"]
+        ]
+    },
+]
