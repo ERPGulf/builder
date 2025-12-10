@@ -14,7 +14,6 @@ def calculate_gross_salary(doc, method):
     frappe.msgprint(f"Gross Salary Calculated: {gross_salary}", alert=True)
 
 
-import frappe
 
 def validate_advance_limit(doc, method):
     ssa = frappe.get_value(
