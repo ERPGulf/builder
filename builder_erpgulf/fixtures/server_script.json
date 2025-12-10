@@ -93,5 +93,24 @@
   "reference_doctype": "Project",
   "script": "# Map for scores\r\nscore_map = {\r\n    \"high\": 3,\r\n    \"medium\": 2,\r\n    \"low\": 1\r\n}\r\n\r\nfor row in (doc.custom_stakeholder_matrix or []):\r\n    inf = score_map.get((row.influence or \"\").lower(), 0)\r\n    inte = score_map.get((row.interest or \"\").lower(), 0)\r\n\r\n    score = inf * inte\r\n\r\n    # Determine category\r\n    if score >= 7:\r\n        row.category = \"Manage Closely\"\r\n    elif score >= 4:\r\n        row.category = \"Keep Satisfied\"\r\n    elif score >= 2:\r\n        row.category = \"Keep Informed\"\r\n    elif score == 1:\r\n        row.category = \"Monitor\"\r\n    else:\r\n        row.category = \"Undefined\"\r\n",
   "script_type": "DocType Event"
+ },
+ {
+  "allow_guest": 0,
+  "api_method": null,
+  "cron_format": null,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Server Script",
+  "doctype_event": "Before Save",
+  "enable_rate_limit": 0,
+  "event_frequency": "All",
+  "modified": "2025-12-09 07:54:32.069434",
+  "module": "Builder ERPGulf",
+  "name": "Employee - User Sync",
+  "rate_limit_count": 5,
+  "rate_limit_seconds": 86400,
+  "reference_doctype": "Employee",
+  "script": "if doc.user_id:\r\n    # Check if user exists\r\n    if frappe.db.exists(\"User\", doc.user_id):\r\n\r\n        user = frappe.get_doc(\"User\", doc.user_id)\r\n\r\n        # Update fields\r\n        user.employee_id = doc.name    # or doc.employee if using naming_series\r\n        user.designation = doc.designation\r\n\r\n        # Save without permission issues\r\n        user.save(ignore_permissions=True)\r\n",
+  "script_type": "DocType Event"
  }
 ]

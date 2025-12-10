@@ -144,6 +144,18 @@ app_license = "mit"
 # 		"on_trash": "method"
 # 	}
 # }
+doc_events = {
+    "Employee": {
+        "before_save": "builder_erpgulf.user_employee_sync.update_user_from_employee"
+    },
+     "Salary Structure Assignment": {
+        "before_save": "builder_erpgulf.salary.calculate_gross_salary"
+    },
+    "Employee Advance": {
+        "validate": "builder_erpgulf.salary.validate_advance_limit"
+    }
+}
+
 
 # Scheduled Tasks
 # ---------------
