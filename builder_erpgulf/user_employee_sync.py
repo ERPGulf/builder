@@ -13,3 +13,5 @@ def update_user_from_employee(doc, method):
     user.designation = doc.designation
 
     user.save(ignore_permissions=True)
+
+

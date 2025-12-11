@@ -32,3 +32,18 @@ def validate_advance_limit(doc, method):
         frappe.throw(
             f"Maximum advance allowed is 50% of Gross Salary ({max_advance})."
         )
+
+
+
+@frappe.whitelist()
+def get_allowed_advance(employee):
+    gross_salary = frappe.get_value(
+        "Salary Structure Assignment",
+        {"employee": employee, "docstatus": 1},
+        "gross_salary"
+    )
+
+    if not gross_salary:
+        return 0
+    
+    return float(gross_salary) * 0.50
