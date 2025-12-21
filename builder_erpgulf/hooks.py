@@ -45,7 +45,8 @@ app_license = "mit"
 # include js in doctype views
 # doctype_js = {"doctype" : "public/js/doctype.js"}
 doctype_js = {
-    "Employee Advance": "public/js/employee_advance.js"
+    "Employee Advance": "public/js/employee_advance.js",
+    "ToDo": "public/js/todo_user_search.js"
 }
 
 
@@ -274,3 +275,6 @@ fixtures = [
         ]
     },
 ]
+override_whitelisted_methods = {
+    "frappe.desk.form.assign_to.add": "builder_erpgulf.api.assign_to.add"
+}
