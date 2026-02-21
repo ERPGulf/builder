@@ -140,6 +140,11 @@ doctype_js = {
 # 	"ToDo": "custom_app.overrides.CustomToDo"
 # }
 
+override_doctype_class = {
+    "Shift Type": "builder_erpgulf.overrides.shift_type.SameDayAbsentShiftType"
+}
+
+
 # Document Events
 # ---------------
 # Hook on document methods and events
