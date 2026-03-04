@@ -141,7 +141,8 @@ doctype_js = {
 # }
 
 override_doctype_class = {
-    "Shift Type": "builder_erpgulf.overrides.shift_type.SameDayAbsentShiftType"
+    "Shift Type": "builder_erpgulf.overrides.shift_type.SameDayAbsentShiftType",
+	"Attendance": "builder_erpgulf.overrides.overtime.Attendance"
 }
 
 
