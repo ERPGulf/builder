@@ -1,14 +1,11 @@
-// Copyright (c) 2026, ERPGulf and contributors
-// For license information, please see license.txt
+// // Copyright (c) 2026, ERPGulf and contributors
+// // For license information, please see license.txt
 
-// frappe.query_reports["Shift Attendance Custom"] = {
+// frappe.query_reports["Shift Attendance with OT"] = {
 // 	"filters": [
 
 // 	]
 // };
-
-// Copyright (c) 2023, Frappe Technologies Pvt. Ltd. and contributors
-// For license information, please see license.txt
 
 frappe.query_reports["Shift Attendance Custom"] = {
 	filters: [
