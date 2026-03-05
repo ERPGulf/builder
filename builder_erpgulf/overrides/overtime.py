@@ -1,42 +1,55 @@
 import frappe
 from hrms.hr.doctype.attendance.attendance import Attendance as HRMSAttendance
-from frappe.utils import time_diff_in_hours
+from frappe.utils import get_datetime, time_diff_in_hours
 
 
 class Attendance(HRMSAttendance):
+
 	def validate(self):
 		super().validate()
 		self.calculate_overtime_hours()
 
 	def calculate_overtime_hours(self):
+
 		self.overtime_hours = 0
 
-		if not self.working_hours:
+		if not (self.shift and self.in_time and self.out_time):
 			return
 
-		if self.status in ("Absent", "On Leave"):
+		shift = frappe.get_doc("Shift Type", self.shift)
+
+		if not shift.enable_overtime_calculation:
 			return
 
-		shift_hours = 0
+		attendance_date = get_datetime(self.attendance_date)
 
-		if self.shift:
-			shift = frappe.db.get_value(
-				"Shift Type",
-				self.shift,
-				["start_time", "end_time"],
-				as_dict=True,
-			)
+		start_seconds = shift.start_time.total_seconds()
+		end_seconds = shift.end_time.total_seconds()
 
-			if shift and shift.start_time and shift.end_time:
-				shift_hours = time_diff_in_hours(
-					shift.end_time,
-					shift.start_time
-				)
+		start_hour = int(start_seconds // 3600)
+		start_min = int((start_seconds % 3600) // 60)
 
-		if not shift_hours and self.standard_working_hours:
-			shift_hours = self.standard_working_hours
+		end_hour = int(end_seconds // 3600)
+		end_min = int((end_seconds % 3600) // 60)
 
-		if self.working_hours > shift_hours:
-			self.overtime_hours = round(
-				self.working_hours - shift_hours, 2
-			)
+		shift_start = attendance_date.replace(
+			hour=start_hour,
+			minute=start_min,
+			second=0
+		)
+
+		shift_end = attendance_date.replace(
+			hour=end_hour,
+			minute=end_min,
+			second=0
+		)
+
+		overtime = 0
+
+		if self.in_time < shift_start:
+			overtime += time_diff_in_hours(shift_start, self.in_time)
+
+		if self.out_time > shift_end:
+			overtime += time_diff_in_hours(self.out_time, shift_end)
+
+		self.overtime_hours = round(overtime, 2)
