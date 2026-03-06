@@ -1,13 +1,4 @@
-// // Copyright (c) 2026, ERPGulf and contributors
-// // For license information, please see license.txt
-
-// frappe.query_reports["Shift Attendance with OT"] = {
-// 	"filters": [
-
-// 	]
-// };
-
-frappe.query_reports["Shift Attendance Custom"] = {
+frappe.query_reports["Shift Attendance with OT"] = {
 	filters: [
 		{
 			fieldname: "from_date",
