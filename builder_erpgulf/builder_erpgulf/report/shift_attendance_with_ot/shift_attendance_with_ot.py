@@ -14,9 +14,6 @@ def execute(filters=None):
 	return columns, data
 
 
-# -------------------------------------------------------------
-# Columns
-# -------------------------------------------------------------
 
 def get_columns():
 	return [
@@ -85,9 +82,6 @@ def get_columns():
 	]
 
 
-# -------------------------------------------------------------
-# Main Data Builder
-# -------------------------------------------------------------
 
 def get_data(filters):
 
@@ -130,9 +124,6 @@ def get_data(filters):
 	return sorted(final_data, key=lambda x: (x.employee, x.attendance_date))
 
 
-# -------------------------------------------------------------
-# Attendance Query
-# -------------------------------------------------------------
 
 def get_attendance_records(filters):
 
@@ -170,9 +161,6 @@ def get_attendance_records(filters):
 	return query.run(as_dict=True)
 
 
-# -------------------------------------------------------------
-# Employees
-# -------------------------------------------------------------
 
 def get_employees(filters):
 
@@ -183,9 +171,6 @@ def get_employees(filters):
 	)
 
 
-# -------------------------------------------------------------
-# Date Range
-# -------------------------------------------------------------
 
 def get_all_dates(from_date, to_date):
 
@@ -200,9 +185,6 @@ def get_all_dates(from_date, to_date):
 	return dates
 
 
-# -------------------------------------------------------------
-# Holiday / Weekend Detection
-# -------------------------------------------------------------
 
 def get_day_status(holiday_list, date):
 
