@@ -3,20 +3,20 @@ from datetime import timedelta
 import frappe
 from frappe import _
 from frappe.query_builder import Criterion
-from frappe.utils import cint, flt, format_datetime, format_duration
+from frappe.utils import cint, flt, format_datetime, format_duration, formatdate, getdate, add_days
 
 from erpnext.accounts.utils import build_qb_match_conditions
 
-from frappe.utils import formatdate
-from frappe.utils import getdate, add_days
 
 def execute(filters=None):
 	columns = get_columns()
 	data = get_data(filters)
-	chart = get_chart_data(data)
-	report_summary = get_report_summary(data)
-	return columns, data, None, chart, report_summary
+	return columns, data
 
+
+# -------------------------------------------------------------
+# Columns
+# -------------------------------------------------------------
 
 def get_columns():
 	return [
@@ -25,27 +25,19 @@ def get_columns():
 			"fieldname": "employee",
 			"fieldtype": "Link",
 			"options": "Employee",
-			"width": 220,
+			"width": 200,
 		},
 		{
+			"label": _("Employee Name"),
 			"fieldname": "employee_name",
 			"fieldtype": "Data",
-			"label": _("Employee Name"),
-			"width": 0,
-			"hidden": 1,
-		},
-		{
-			"label": _("Shift"),
-			"fieldname": "shift",
-			"fieldtype": "Link",
-			"options": "Shift Type",
-			"width": 120,
+			"width": 200,
 		},
 		{
 			"label": _("Attendance Date"),
 			"fieldname": "attendance_date",
 			"fieldtype": "Date",
-			"width": 130,
+			"width": 120,
 		},
 		{
 			"label": _("Day"),
@@ -57,19 +49,14 @@ def get_columns():
 			"label": _("Status"),
 			"fieldname": "status",
 			"fieldtype": "Data",
-			"width": 80,
+			"width": 100,
 		},
 		{
-			"label": _("Shift Start Time"),
-			"fieldname": "shift_start",
-			"fieldtype": "Data",
-			"width": 125,
-		},
-		{
-			"label": _("Shift End Time"),
-			"fieldname": "shift_end",
-			"fieldtype": "Data",
-			"width": 125,
+			"label": _("Shift"),
+			"fieldname": "shift",
+			"fieldtype": "Link",
+			"options": "Shift Type",
+			"width": 150,
 		},
 		{
 			"label": _("In Time"),
@@ -84,328 +71,126 @@ def get_columns():
 			"width": 120,
 		},
 		{
-			"label": _("Total Working Hours"),
+			"label": _("Working Hours"),
 			"fieldname": "working_hours",
-			"fieldtype": "Data",
-			"width": 100,
-		},
-        {
-            "label": _("Overtime Hours"),
-            "fieldname": "overtime_hours",
-            "fieldtype": "Float",
-            "width": 120,
-        },
-		{
-			"label": _("Late Entry By"),
-			"fieldname": "late_entry_hrs",
-			"fieldtype": "Data",
+			"fieldtype": "Float",
 			"width": 120,
 		},
 		{
-			"label": _("Early Exit By"),
-			"fieldname": "early_exit_hrs",
-			"fieldtype": "Data",
+			"label": _("Overtime Hours"),
+			"fieldname": "overtime_hours",
+			"fieldtype": "Float",
 			"width": 120,
-		},
-		{
-			"label": _("Department"),
-			"fieldname": "department",
-			"fieldtype": "Link",
-			"options": "Department",
-			"width": 150,
-		},
-		{
-			"label": _("Company"),
-			"fieldname": "company",
-			"fieldtype": "Link",
-			"options": "Company",
-			"width": 150,
-		},
-		{
-			"label": _("Shift Actual Start Time"),
-			"fieldname": "shift_actual_start",
-			"fieldtype": "Data",
-			"width": 165,
-		},
-		{
-			"label": _("Shift Actual End Time"),
-			"fieldname": "shift_actual_end",
-			"fieldtype": "Data",
-			"width": 165,
-		},
-		{
-			"label": _("Attendance ID"),
-			"fieldname": "name",
-			"fieldtype": "Link",
-			"options": "Attendance",
-			"width": 150,
 		},
 	]
 
 
-# def get_data(filters):
-# 	data = get_attendance_with_checkins(filters)
-# 	data = update_data(data, filters)
-# 	if filters.include_attendance_without_checkins:
-# 		data.extend(get_attendance_without_checkins(filters))
-# 	return data
-
+# -------------------------------------------------------------
+# Main Data Builder
+# -------------------------------------------------------------
 
 def get_data(filters):
 
-	data = get_attendance_with_checkins(filters)
-	data = update_data(data, filters)
+	attendance_data = get_attendance_records(filters)
 
 	all_dates = get_all_dates(filters.from_date, filters.to_date)
 
-	existing_dates = {d.attendance_date for d in data if d.attendance_date}
+	employees = get_employees(filters)
 
-	for dt in all_dates:
-		if dt not in existing_dates:
-			data.append(
-				frappe._dict(
+	final_data = []
+
+	for emp in employees:
+
+		holiday_list = frappe.db.get_value("Employee", emp.name, "holiday_list")
+
+		emp_attendance = {
+			d.attendance_date: d for d in attendance_data if d.employee == emp.name
+		}
+
+		for dt in all_dates:
+
+			if dt in emp_attendance:
+				row = emp_attendance[dt]
+			else:
+
+				status = get_day_status(holiday_list, dt)
+
+				row = frappe._dict(
+					employee=emp.name,
+					employee_name=emp.employee_name,
 					attendance_date=dt,
-					day=frappe.utils.formatdate(dt, "EEEE"),
-					status="No Attendance",
+					day=formatdate(dt, "EEEE"),
+					status=status,
 				)
-			)
 
-	data = sorted(data, key=lambda x: x.attendance_date or "")
+			row.day = formatdate(dt, "EEEE")
 
-	return data
+			final_data.append(row)
 
-def get_report_summary(data):
-	if not data:
-		return None
-
-	present_records = half_day_records = absent_records = late_entries = early_exits = 0
-
-	for entry in data:
-		if entry.status == "Present":
-			present_records += 1
-		elif entry.status == "Half Day":
-			half_day_records += 1
-		else:
-			absent_records += 1
-
-		if entry.late_entry:
-			late_entries += 1
-		if entry.early_exit:
-			early_exits += 1
-
-	return [
-		{
-			"value": present_records,
-			"indicator": "Green",
-			"label": _("Present Records"),
-			"datatype": "Int",
-		},
-		{
-			"value": half_day_records,
-			"indicator": "Blue",
-			"label": _("Half Day Records"),
-			"datatype": "Int",
-		},
-		{
-			"value": absent_records,
-			"indicator": "Red",
-			"label": _("Absent Records"),
-			"datatype": "Int",
-		},
-		{
-			"value": late_entries,
-			"indicator": "Red",
-			"label": _("Late Entries"),
-			"datatype": "Int",
-		},
-		{
-			"value": early_exits,
-			"indicator": "Red",
-			"label": _("Early Exits"),
-			"datatype": "Int",
-		},
-	]
+	return sorted(final_data, key=lambda x: (x.employee, x.attendance_date))
 
 
-def get_chart_data(data):
-	if not data:
-		return None
+# -------------------------------------------------------------
+# Attendance Query
+# -------------------------------------------------------------
 
-	total_shift_records = {}
-	for entry in data:
-		total_shift_records.setdefault(entry.shift, 0)
-		total_shift_records[entry.shift] += 1
+def get_attendance_records(filters):
 
-	labels = [_(d) for d in list(total_shift_records)]
-	chart = {
-		"data": {
-			"labels": labels,
-			"datasets": [{"name": _("Shift"), "values": list(total_shift_records.values())}],
-		},
-		"type": "percentage",
-	}
-	return chart
-
-
-def get_attendance_with_checkins(filters):
 	attendance = frappe.qb.DocType("Attendance")
-	checkin = frappe.qb.DocType("Employee Checkin")
-	shift_type = frappe.qb.DocType("Shift Type")
-
-	query = (
-		get_base_attendance_query(filters)
-		.inner_join(checkin)
-		.on(checkin.attendance == attendance.name)
-		.select(
-			checkin.shift_start,
-			checkin.shift_end,
-			checkin.shift_actual_start,
-			checkin.shift_actual_end,
-			shift_type.enable_late_entry_marking,
-			shift_type.late_entry_grace_period,
-			shift_type.enable_early_exit_marking,
-			shift_type.early_exit_grace_period,
-		)
-	)
-	for field in filters:
-		if field == "late_entry" and not filters.consider_grace_period:
-			query = query.where(attendance.in_time > checkin.shift_start)
-		elif field == "early_exit" and not filters.consider_grace_period:
-			query = query.where(attendance.out_time < checkin.shift_end)
-	result = query.run(as_dict=True)
-	return result
-
-
-def get_base_attendance_query(filters):
-	attendance = frappe.qb.DocType("Attendance")
-	shift_type = frappe.qb.DocType("Shift Type")
 
 	query = (
 		frappe.qb.from_(attendance)
-		.inner_join(shift_type)
-		.on(attendance.shift == shift_type.name)
 		.select(
 			attendance.name,
 			attendance.employee,
 			attendance.employee_name,
-			attendance.shift,
 			attendance.attendance_date,
 			attendance.status,
+			attendance.shift,
 			attendance.in_time,
 			attendance.out_time,
 			attendance.working_hours,
-            attendance.overtime_hours,
-			attendance.late_entry,
-			attendance.early_exit,
-			attendance.department,
-			attendance.company,
+			attendance.overtime_hours,
 		)
 		.where(attendance.docstatus == 1)
-		.groupby(attendance.name)
 	)
 
-	for field in filters:
-		if field == "from_date":
-			query = query.where(attendance.attendance_date >= filters.from_date)
-		elif field == "to_date":
-			query = query.where(attendance.attendance_date <= filters.to_date)
-		elif field in ["consider_grace_period", "include_attendance_without_checkins"]:
-			continue
-		else:
-			query = query.where(attendance[field] == filters[field])
+	if filters.get("employee"):
+		query = query.where(attendance.employee == filters.employee)
 
-	query = query.where(Criterion.all(build_qb_match_conditions("Attendance")))
-	return query
+	if filters.get("company"):
+		query = query.where(attendance.company == filters.company)
+
+	if filters.get("from_date"):
+		query = query.where(attendance.attendance_date >= filters.from_date)
+
+	if filters.get("to_date"):
+		query = query.where(attendance.attendance_date <= filters.to_date)
+
+	return query.run(as_dict=True)
 
 
-def get_attendance_without_checkins(filters):
-	attendance = frappe.qb.DocType("Attendance")
-	checkin = frappe.qb.DocType("Employee Checkin")
+# -------------------------------------------------------------
+# Employees
+# -------------------------------------------------------------
 
-	query = (
-		get_base_attendance_query(filters)
-		.left_join(checkin)
-		.on(checkin.attendance == attendance.name)
-		.where(checkin.attendance.isnull())
+def get_employees(filters):
+
+	return frappe.get_all(
+		"Employee",
+		fields=["name", "employee_name"],
+		filters={"status": "Active", "company": filters.company},
 	)
-	result = query.run(as_dict=True)
-	return result
 
 
-def update_data(data, filters):
-	for d in data:
-
-		if d.attendance_date:
-			d.day = formatdate(d.attendance_date, "EEEE")
-
-		update_late_entry(d, filters.consider_grace_period)
-		update_early_exit(d, filters.consider_grace_period)
-
-		d.working_hours = format_float_precision(d.working_hours)
-		d.overtime_hours = format_float_precision(d.overtime_hours)
-
-		d.in_time, d.out_time = format_in_out_time(d.in_time, d.out_time, d.attendance_date)
-		d.shift_start, d.shift_end = convert_datetime_to_time_for_same_date(d.shift_start, d.shift_end)
-		d.shift_actual_start, d.shift_actual_end = convert_datetime_to_time_for_same_date(
-			d.shift_actual_start, d.shift_actual_end
-		)
-
-	return data
-
-
-def format_float_precision(value):
-	precision = cint(frappe.db.get_default("float_precision")) or 2
-	return flt(value, precision)
-
-
-def format_in_out_time(in_time, out_time, attendance_date):
-	if in_time and not out_time and in_time.date() == attendance_date:
-		in_time = in_time.time()
-	elif out_time and not in_time and out_time.date() == attendance_date:
-		out_time = out_time.time()
-	else:
-		in_time, out_time = convert_datetime_to_time_for_same_date(in_time, out_time)
-	return in_time, out_time
-
-
-def convert_datetime_to_time_for_same_date(start, end):
-	if start and end and start.date() == end.date():
-		start = start.time()
-		end = end.time()
-	else:
-		start = format_datetime(start)
-		end = format_datetime(end)
-	return start, end
-
-
-def update_late_entry(entry, consider_grace_period):
-	if consider_grace_period:
-		if entry.late_entry:
-			entry_grace_period = entry.late_entry_grace_period if entry.enable_late_entry_marking else 0
-			start_time = entry.shift_start + timedelta(minutes=entry_grace_period)
-			entry.late_entry_hrs = entry.in_time - start_time
-	elif entry.in_time and entry.in_time > entry.shift_start:
-		entry.late_entry = 1
-		entry.late_entry_hrs = entry.in_time - entry.shift_start
-	if entry.late_entry_hrs:
-		entry.late_entry_hrs = format_duration(entry.late_entry_hrs.total_seconds())
-
-
-def update_early_exit(entry, consider_grace_period):
-	if consider_grace_period:
-		if entry.early_exit:
-			exit_grace_period = entry.early_exit_grace_period if entry.enable_early_exit_marking else 0
-			end_time = entry.shift_end - timedelta(minutes=exit_grace_period)
-			entry.early_exit_hrs = end_time - entry.out_time
-	elif entry.out_time and entry.out_time < entry.shift_end:
-		entry.early_exit = 1
-		entry.early_exit_hrs = entry.shift_end - entry.out_time
-	if entry.early_exit_hrs:
-		entry.early_exit_hrs = format_duration(entry.early_exit_hrs.total_seconds())
-
+# -------------------------------------------------------------
+# Date Range
+# -------------------------------------------------------------
 
 def get_all_dates(from_date, to_date):
+
 	dates = []
+
 	current = getdate(from_date)
 
 	while current <= getdate(to_date):
@@ -413,3 +198,34 @@ def get_all_dates(from_date, to_date):
 		current = add_days(current, 1)
 
 	return dates
+
+
+# -------------------------------------------------------------
+# Holiday / Weekend Detection
+# -------------------------------------------------------------
+
+def get_day_status(holiday_list, date):
+
+	if is_holiday(holiday_list, date):
+		return "Holiday"
+
+	weekday = date.weekday()
+
+	if weekday in [5, 6]:
+		return "Weekend"
+
+	return "Absent"
+
+
+def is_holiday(holiday_list, date):
+
+	if not holiday_list:
+		return False
+
+	return frappe.db.exists(
+		"Holiday",
+		{
+			"parent": holiday_list,
+			"holiday_date": date,
+		},
+	)
