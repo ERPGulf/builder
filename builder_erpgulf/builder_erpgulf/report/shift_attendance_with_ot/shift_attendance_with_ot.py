@@ -1,13 +1,3 @@
-# Copyright (c) 2026, ERPGulf and contributors
-# For license information, please see license.txt
-
-# import frappe
-
-
-
-# Copyright (c) 2023, Frappe Technologies Pvt. Ltd. and contributors
-# For license information, please see license.txt
-
 from datetime import timedelta
 
 import frappe
@@ -17,6 +7,8 @@ from frappe.utils import cint, flt, format_datetime, format_duration
 
 from erpnext.accounts.utils import build_qb_match_conditions
 
+from frappe.utils import formatdate
+from frappe.utils import getdate, add_days
 
 def execute(filters=None):
 	columns = get_columns()
@@ -54,6 +46,12 @@ def get_columns():
 			"fieldname": "attendance_date",
 			"fieldtype": "Date",
 			"width": 130,
+		},
+		{
+			"label": _("Day"),
+			"fieldname": "day",
+			"fieldtype": "Data",
+			"width": 100,
 		},
 		{
 			"label": _("Status"),
@@ -145,13 +143,36 @@ def get_columns():
 	]
 
 
+# def get_data(filters):
+# 	data = get_attendance_with_checkins(filters)
+# 	data = update_data(data, filters)
+# 	if filters.include_attendance_without_checkins:
+# 		data.extend(get_attendance_without_checkins(filters))
+# 	return data
+
+
 def get_data(filters):
+
 	data = get_attendance_with_checkins(filters)
 	data = update_data(data, filters)
-	if filters.include_attendance_without_checkins:
-		data.extend(get_attendance_without_checkins(filters))
-	return data
 
+	all_dates = get_all_dates(filters.from_date, filters.to_date)
+
+	existing_dates = {d.attendance_date for d in data if d.attendance_date}
+
+	for dt in all_dates:
+		if dt not in existing_dates:
+			data.append(
+				frappe._dict(
+					attendance_date=dt,
+					day=frappe.utils.formatdate(dt, "EEEE"),
+					status="No Attendance",
+				)
+			)
+
+	data = sorted(data, key=lambda x: x.attendance_date or "")
+
+	return data
 
 def get_report_summary(data):
 	if not data:
@@ -313,6 +334,10 @@ def get_attendance_without_checkins(filters):
 
 def update_data(data, filters):
 	for d in data:
+
+		if d.attendance_date:
+			d.day = formatdate(d.attendance_date, "EEEE")
+
 		update_late_entry(d, filters.consider_grace_period)
 		update_early_exit(d, filters.consider_grace_period)
 
@@ -377,3 +402,14 @@ def update_early_exit(entry, consider_grace_period):
 		entry.early_exit_hrs = entry.shift_end - entry.out_time
 	if entry.early_exit_hrs:
 		entry.early_exit_hrs = format_duration(entry.early_exit_hrs.total_seconds())
+
+
+def get_all_dates(from_date, to_date):
+	dates = []
+	current = getdate(from_date)
+
+	while current <= getdate(to_date):
+		dates.append(current)
+		current = add_days(current, 1)
+
+	return dates
