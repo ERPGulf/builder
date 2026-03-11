@@ -104,6 +104,12 @@ def get_columns():
             "width": 120,
         },
 		{
+			"label": _("Total Overtime (Period)"),
+			"fieldname": "total_overtime_hours",
+			"fieldtype": "Float",
+			"width": 160,
+		},
+		{
 			"label": _("Late Entry By"),
 			"fieldname": "late_entry_hrs",
 			"fieldtype": "Data",
@@ -151,17 +157,16 @@ def get_columns():
 	]
 
 
-
-
 def get_data(filters):
     data = get_attendance_with_checkins(filters)
     data = update_data(data, filters)
+
     if filters.include_attendance_without_checkins:
         data.extend(get_attendance_without_checkins(filters))
-    
+
     for d in data:
         d.day = d.attendance_date.strftime("%A") if d.attendance_date else ""
-    
+
     data = add_weekend_records(data, filters)
 
     for d in data:
@@ -182,6 +187,34 @@ def get_data(filters):
             d.overtime_hours = 0
             d.late_entry_hrs = None
             d.early_exit_hrs = None
+
+
+    total_ot_by_employee = {}
+    last_date_by_employee = {}
+
+    for d in data:
+        if not d.employee or not d.attendance_date:
+            continue
+
+        total_ot_by_employee.setdefault(d.employee, 0)
+        total_ot_by_employee[d.employee] += flt(d.overtime_hours or 0)
+
+        if (
+            d.employee not in last_date_by_employee
+            or d.attendance_date > last_date_by_employee[d.employee]
+        ):
+            last_date_by_employee[d.employee] = d.attendance_date
+
+    for d in data:
+        d.total_overtime_hours = None
+
+        if (
+            d.employee
+            and d.attendance_date == last_date_by_employee.get(d.employee)
+        ):
+            d.total_overtime_hours = format_float_precision(
+                total_ot_by_employee.get(d.employee, 0)
+            )
 
     return data
 
