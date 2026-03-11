@@ -1,10 +1,3 @@
-# Copyright (c) 2026, ERPGulf and contributors
-# For license information, please see license.txt
-
-# import frappe
-
-
-
 # Copyright (c) 2023, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
@@ -202,6 +195,7 @@ def get_data(filters):
         company = company or d.company
 
     for d in data:
+        d.working_hours = float_hours_to_hhmm(d.working_hours)
         d.overtime_hours = float_hours_to_hhmm(d.overtime_hours)
 
     if total_overtime:
