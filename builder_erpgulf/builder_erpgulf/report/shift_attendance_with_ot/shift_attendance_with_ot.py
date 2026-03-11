@@ -100,15 +100,10 @@ def get_columns():
         {
             "label": _("Overtime Hours"),
             "fieldname": "overtime_hours",
-            "fieldtype": "Float",
+            "fieldtype": "Data",
             "width": 120,
         },
-		{
-			"label": _("Total Overtime (Period)"),
-			"fieldname": "total_overtime_hours",
-			"fieldtype": "Float",
-			"width": 160,
-		},
+		
 		{
 			"label": _("Late Entry By"),
 			"fieldname": "late_entry_hrs",
@@ -156,6 +151,15 @@ def get_columns():
 		},
 	]
 
+def float_hours_to_hhmm(hours):
+    if not hours:
+        return ""
+
+    total_minutes = int(round(flt(hours) * 60))
+    hh = total_minutes // 60
+    mm = total_minutes % 60
+    return f"{hh:02d}:{mm:02d}"
+
 
 def get_data(filters):
     data = get_attendance_with_checkins(filters)
@@ -188,33 +192,42 @@ def get_data(filters):
             d.late_entry_hrs = None
             d.early_exit_hrs = None
 
-
-    total_ot_by_employee = {}
-    last_date_by_employee = {}
-
-    for d in data:
-        if not d.employee or not d.attendance_date:
-            continue
-
-        total_ot_by_employee.setdefault(d.employee, 0)
-        total_ot_by_employee[d.employee] += flt(d.overtime_hours or 0)
-
-        if (
-            d.employee not in last_date_by_employee
-            or d.attendance_date > last_date_by_employee[d.employee]
-        ):
-            last_date_by_employee[d.employee] = d.attendance_date
+    total_overtime = 0
+    employee = None
+    company = None
 
     for d in data:
-        d.total_overtime_hours = None
+        total_overtime += flt(d.overtime_hours or 0)
+        employee = employee or d.employee
+        company = company or d.company
 
-        if (
-            d.employee
-            and d.attendance_date == last_date_by_employee.get(d.employee)
-        ):
-            d.total_overtime_hours = format_float_precision(
-                total_ot_by_employee.get(d.employee, 0)
-            )
+    for d in data:
+        d.overtime_hours = float_hours_to_hhmm(d.overtime_hours)
+
+    if total_overtime:
+        data.append(frappe._dict({
+            "employee": employee if filters.get("employee") else _("TOTAL"),
+            "employee_name": "",
+            "shift": None,
+            "attendance_date": None,
+            "day": "",
+            "status": "",
+            "shift_start": None,
+            "shift_end": None,
+            "in_time": None,
+            "out_time": None,
+            "working_hours": None,
+            "overtime_hours": float_hours_to_hhmm(total_overtime),
+            "late_entry": None,
+            "late_entry_hrs": None,
+            "early_exit": None,
+            "early_exit_hrs": None,
+            "department": None,
+            "company": company,
+            "shift_actual_start": None,
+            "shift_actual_end": None,
+            "name": None,
+        }))
 
     return data
 
