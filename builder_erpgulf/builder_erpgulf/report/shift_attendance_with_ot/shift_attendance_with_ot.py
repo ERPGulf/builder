@@ -299,56 +299,59 @@ def add_weekend_records(data, filters):
 
 
 def get_report_summary(data):
-	if not data:
-		return None
+    if not data:
+        return None
 
-	present_records = half_day_records = absent_records = late_entries = early_exits = 0
+    present_records = half_day_records = absent_records = late_entries = early_exits = 0
 
-	for entry in data:
-		if entry.status == "Present":
-			present_records += 1
-		elif entry.status == "Half Day":
-			half_day_records += 1
-		else:
-			absent_records += 1
+    for entry in data:
+        if not entry.attendance_date:
+            continue
 
-		if entry.late_entry:
-			late_entries += 1
-		if entry.early_exit:
-			early_exits += 1
+        if entry.status == "Present":
+            present_records += 1
+        elif entry.status == "Half Day":
+            half_day_records += 1
+        elif entry.status == "Absent":
+            absent_records += 1
 
-	return [
-		{
-			"value": present_records,
-			"indicator": "Green",
-			"label": _("Present Records"),
-			"datatype": "Int",
-		},
-		{
-			"value": half_day_records,
-			"indicator": "Blue",
-			"label": _("Half Day Records"),
-			"datatype": "Int",
-		},
-		{
-			"value": absent_records,
-			"indicator": "Red",
-			"label": _("Absent Records"),
-			"datatype": "Int",
-		},
-		{
-			"value": late_entries,
-			"indicator": "Red",
-			"label": _("Late Entries"),
-			"datatype": "Int",
-		},
-		{
-			"value": early_exits,
-			"indicator": "Red",
-			"label": _("Early Exits"),
-			"datatype": "Int",
-		},
-	]
+        if entry.late_entry:
+            late_entries += 1
+        if entry.early_exit:
+            early_exits += 1
+
+    return [
+        {
+            "value": present_records,
+            "indicator": "Green",
+            "label": _("Present Records"),
+            "datatype": "Int",
+        },
+        {
+            "value": half_day_records,
+            "indicator": "Blue",
+            "label": _("Half Day Records"),
+            "datatype": "Int",
+        },
+        {
+            "value": absent_records,
+            "indicator": "Red",
+            "label": _("Absent Records"),
+            "datatype": "Int",
+        },
+        {
+            "value": late_entries,
+            "indicator": "Red",
+            "label": _("Late Entries"),
+            "datatype": "Int",
+        },
+        {
+            "value": early_exits,
+            "indicator": "Red",
+            "label": _("Early Exits"),
+            "datatype": "Int",
+        },
+    ]
 
 
 def get_chart_data(data):
