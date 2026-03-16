@@ -153,6 +153,25 @@ def float_hours_to_hhmm(hours):
     mm = total_minutes % 60
     return f"{hh:02d}:{mm:02d}"
 
+def sort_data_consecutively(data):
+    """
+    Sort rows by attendance_date.
+    Keep TOTAL row always at the bottom.
+    """
+
+    dated_rows = []
+    total_rows = []
+
+    for d in data:
+        if d.attendance_date:
+            dated_rows.append(d)
+        else:
+            total_rows.append(d)  
+
+    dated_rows.sort(key=lambda x: x.attendance_date)
+
+    return dated_rows + total_rows
+
 
 def get_data(filters):
     data = get_attendance_with_checkins(filters)
@@ -222,6 +241,7 @@ def get_data(filters):
             "shift_actual_end": None,
             "name": None,
         }))
+    data = sort_data_consecutively(data)
 
     return data
 
