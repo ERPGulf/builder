@@ -401,7 +401,7 @@ def get_attendance_with_checkins(filters):
 
 	query = (
 		get_base_attendance_query(filters)
-		.inner_join(checkin)
+		.left_join(checkin)
 		.on(checkin.attendance == attendance.name)
 		.select(
 			checkin.shift_start,
