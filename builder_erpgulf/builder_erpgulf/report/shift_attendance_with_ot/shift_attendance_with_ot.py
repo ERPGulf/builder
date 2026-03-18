@@ -177,6 +177,8 @@ def get_data(filters):
     data = get_attendance_with_checkins(filters)
     data = update_data(data, filters)
 
+    if filters.include_attendance_without_checkins:
+        data.extend(get_attendance_without_checkins(filters))
 
     for d in data:
         d.day = d.attendance_date.strftime("%A") if d.attendance_date else ""
@@ -184,7 +186,7 @@ def get_data(filters):
     data = add_weekend_records(data, filters)
 
     for d in data:
-        if d.status not in ("Present", "Half Day"): 
+        if d.status != "Weekend" and d.status not in ("Present", "Half Day"):
 
             if d.shift:
                 shift = frappe.get_doc("Shift Type", d.shift)
@@ -239,7 +241,6 @@ def get_data(filters):
             "shift_actual_end": None,
             "name": None,
         }))
-
     data = sort_data_consecutively(data)
 
     return data
@@ -322,7 +323,7 @@ def get_report_summary(data):
         return None
 
     present_records = half_day_records = absent_records = late_entries = early_exits = 0
-    leave_records = 0  
+
     for entry in data:
         if not entry.attendance_date:
             continue
@@ -333,8 +334,6 @@ def get_report_summary(data):
             half_day_records += 1
         elif entry.status == "Absent":
             absent_records += 1
-        elif entry.status == "On Leave": 
-            leave_records += 1
 
         if entry.late_entry:
             late_entries += 1
@@ -361,12 +360,6 @@ def get_report_summary(data):
             "datatype": "Int",
         },
         {
-            "value": leave_records,  
-            "indicator": "Blue",
-            "label": _("Leave Records"),
-            "datatype": "Int",
-        },
-        {
             "value": late_entries,
             "indicator": "Red",
             "label": _("Late Entries"),
@@ -379,6 +372,7 @@ def get_report_summary(data):
             "datatype": "Int",
         },
     ]
+
 
 def get_chart_data(data):
 	if not data:
@@ -401,41 +395,32 @@ def get_chart_data(data):
 
 
 def get_attendance_with_checkins(filters):
-    attendance = frappe.qb.DocType("Attendance")
-    checkin = frappe.qb.DocType("Employee Checkin")
-    shift_type = frappe.qb.DocType("Shift Type")
+	attendance = frappe.qb.DocType("Attendance")
+	checkin = frappe.qb.DocType("Employee Checkin")
+	shift_type = frappe.qb.DocType("Shift Type")
 
-    query = (
-        get_base_attendance_query(filters)
-        .left_join(checkin)  
-        .on(checkin.attendance == attendance.name)
-        .select(
-            checkin.shift_start,
-            checkin.shift_end,
-            checkin.shift_actual_start,
-            checkin.shift_actual_end,
-            shift_type.enable_late_entry_marking,
-            shift_type.late_entry_grace_period,
-            shift_type.enable_early_exit_marking,
-            shift_type.early_exit_grace_period,
-        )
-    )
-
-    for field in filters:
-        if field == "late_entry" and not filters.consider_grace_period:
-            query = query.where(
-                (attendance.in_time.isnotnull()) &
-                (checkin.shift_start.isnotnull()) &
-                (attendance.in_time > checkin.shift_start)
-            )
-        elif field == "early_exit" and not filters.consider_grace_period:
-            query = query.where(
-                (attendance.out_time.isnotnull()) &
-                (checkin.shift_end.isnotnull()) &
-                (attendance.out_time < checkin.shift_end)
-            )
-
-    return query.run(as_dict=True)
+	query = (
+		get_base_attendance_query(filters)
+		.left_join(checkin)
+		.on(checkin.attendance == attendance.name)
+		.select(
+			checkin.shift_start,
+			checkin.shift_end,
+			checkin.shift_actual_start,
+			checkin.shift_actual_end,
+			shift_type.enable_late_entry_marking,
+			shift_type.late_entry_grace_period,
+			shift_type.enable_early_exit_marking,
+			shift_type.early_exit_grace_period,
+		)
+	)
+	for field in filters:
+		if field == "late_entry" and not filters.consider_grace_period:
+			query = query.where(attendance.in_time > checkin.shift_start)
+		elif field == "early_exit" and not filters.consider_grace_period:
+			query = query.where(attendance.out_time < checkin.shift_end)
+	result = query.run(as_dict=True)
+	return result
 
 
 def get_base_attendance_query(filters):
