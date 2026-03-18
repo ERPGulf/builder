@@ -161,6 +161,9 @@ doc_events = {
     },
     "Employee Advance": {
         "validate": "builder_erpgulf.salary.validate_advance_limit"
+    },
+    "Leave Application": {
+        "after_save": "builder_erpgulf.leave_application.leave_application_after_save"
     }
 }
 
