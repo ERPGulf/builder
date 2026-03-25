@@ -332,7 +332,7 @@ def get_report_summary(data):
             present_records += 1
         elif entry.status == "Half Day":
             half_day_records += 1
-        elif entry.status == "Absent":
+        elif entry.status in ("Absent", "On Leave"):
             absent_records += 1
 
         if entry.late_entry:
