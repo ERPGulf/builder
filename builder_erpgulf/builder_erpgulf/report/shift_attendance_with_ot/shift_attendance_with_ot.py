@@ -322,7 +322,12 @@ def get_report_summary(data):
     if not data:
         return None
 
-    present_records = half_day_records = absent_records = late_entries = early_exits = 0
+    present_records = 0
+    half_day_records = 0
+    absent_records = 0
+    onleave_records = 0
+    late_entries = 0
+    early_exits = 0
 
     for entry in data:
         if not entry.attendance_date:
@@ -332,8 +337,10 @@ def get_report_summary(data):
             present_records += 1
         elif entry.status == "Half Day":
             half_day_records += 1
-        elif entry.status in ("Absent", "On Leave"):
+        elif entry.status == "Absent":
             absent_records += 1
+        elif entry.status == "On Leave":
+            onleave_records += 1
 
         if entry.late_entry:
             late_entries += 1
@@ -357,6 +364,12 @@ def get_report_summary(data):
             "value": absent_records,
             "indicator": "Red",
             "label": _("Absent Records"),
+            "datatype": "Int",
+        },
+        {
+            "value": onleave_records,
+            "indicator": "Orange",
+            "label": _("On Leave Records"),
             "datatype": "Int",
         },
         {
