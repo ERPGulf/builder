@@ -6,6 +6,7 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "employee_id",
   "name1",
   "staff_occupation",
   "staff",
@@ -17,10 +18,10 @@
  ],
  "fields": [
   {
+   "fetch_from": "employee_id.designation",
    "fieldname": "staff_occupation",
-   "fieldtype": "Link",
-   "label": "Occupation",
-   "options": "Designation"
+   "fieldtype": "Data",
+   "label": "Occupation"
   },
   {
    "fieldname": "staff",
@@ -53,9 +54,15 @@
    "label": "Hours"
   },
   {
+   "fetch_from": "employee_id.employee_name",
    "fieldname": "name1",
+   "fieldtype": "Data",
+   "label": "Name"
+  },
+  {
+   "fieldname": "employee_id",
    "fieldtype": "Link",
-   "label": "Name",
+   "label": "Employee ID",
    "options": "Employee"
   }
  ],
@@ -63,7 +70,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-04-16 11:03:21.806776",
+ "modified": "2026-04-17 08:27:19.019403",
  "modified_by": "Administrator",
  "module": "Builder ERPGulf",
  "name": "Manpower Available At Site",
