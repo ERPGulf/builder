@@ -96,7 +96,12 @@ def get_columns():
             "fieldtype": "Data",
             "width": 120,
         },
-		
+		{
+			"label": _("Break Hours"),
+			"fieldname": "custom_break_hours",
+			"fieldtype": "Data",
+			"width": 110,
+		},
 		{
 			"label": _("Late Entry By"),
 			"fieldname": "late_entry_hrs",
@@ -201,6 +206,7 @@ def get_data(filters):
             d.out_time = None
             d.working_hours = 0
             d.overtime_hours = 0
+            d.custom_break_hours = 0
             d.late_entry_hrs = None
             d.early_exit_hrs = None
 
@@ -216,6 +222,7 @@ def get_data(filters):
     for d in data:
         d.working_hours = float_hours_to_hhmm(d.working_hours)
         d.overtime_hours = float_hours_to_hhmm(d.overtime_hours)
+        d.custom_break_hours = float_hours_to_hhmm(d.custom_break_hours)
 
     if total_overtime:
         data.append(frappe._dict({
@@ -304,6 +311,7 @@ def add_weekend_records(data, filters):
                     "out_time": None,
                     "working_hours": 0,
                     "overtime_hours": 0,
+					"custom_break_hours": 0,
                     "late_entry": 0,
                     "late_entry_hrs": None,
                     "early_exit": 0,
@@ -455,6 +463,7 @@ def get_base_attendance_query(filters):
 			attendance.out_time,
 			attendance.working_hours,
             attendance.overtime_hours,
+			attendance.custom_break_hours,
 			attendance.late_entry,
 			attendance.early_exit,
 			attendance.department,
@@ -499,6 +508,7 @@ def update_data(data, filters):
 
 		d.working_hours = format_float_precision(d.working_hours)
 		d.overtime_hours = format_float_precision(d.overtime_hours)
+		d.custom_break_hours = format_float_precision(d.custom_break_hours)
 
 		d.in_time, d.out_time = format_in_out_time(d.in_time, d.out_time, d.attendance_date)
 		d.shift_start, d.shift_end = convert_datetime_to_time_for_same_date(d.shift_start, d.shift_end)

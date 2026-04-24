@@ -163,12 +163,23 @@ doc_events = {
     "Employee Advance": {
         "validate": "builder_erpgulf.salary.validate_advance_limit"
     },
+     # "Attendance Request": {
+    #     "after_insert": "builder_erpgulf.workflow.workflow_notifications.set_initial_workflow_state",
+    #     "after_save": "builder_erpgulf.workflow.workflow_notifications.email_notification"
+    # },
     # "Leave Application": {
-    #     "after_save": "builder_erpgulf.leave_application_after_save.leave_application_after_save"
+    #     "after_insert": "builder_erpgulf.workflow.workflow_notifications.set_initial_workflow_state",
+    #     "after_save": "builder_erpgulf.workflow.workflow_notifications.email_notification"
+    # },
+    # "Expense Claim": {
+    #     "after_insert": "builder_erpgulf.workflow.workflow_notifications.set_initial_workflow_state",
+    #     "after_save": "builder_erpgulf.workflow.workflow_notifications.email_notification"
+    # },
+    # "Break Application": {
+    #     "after_insert": "builder_erpgulf.workflow.workflow_notifications.set_initial_workflow_state",
+    #     "after_save": "builder_erpgulf.workflow.workflow_notifications.email_notification"
     # }
 }
-
-
 # Scheduled Tasks
 # ---------------
 
