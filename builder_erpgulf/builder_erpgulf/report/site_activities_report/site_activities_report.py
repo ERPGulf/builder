@@ -35,7 +35,7 @@
 #         "status":           project.status,
 #         "priority":         project.priority,
 #         "percent_complete": project.percent_complete or 0,
-#         "client_logo":      client_logo,          # ← new
+#         "client_logo":      client_logo,
 #     })
 
 #     # ── MACHINERY ───────────────────────────────────────────────
@@ -168,10 +168,21 @@
 #     if not has_next:
 #         rows.append({"section": "NEXTDAY_EMPTY"})
 
+#     # ── ISSUES ───────────────────────────────────────────────────
+#     rows.append({"section": "ISSUES_HEADER"})
+#     for idx, i in enumerate(project.custom_issues or [], start=1):
+#         rows.append({
+#             "section": "ISSUE",
+#             "no":      idx,
+#             "issues":  i.issues,
+#         })
+#     if not project.custom_issues:
+#         rows.append({"section": "ISSUES_EMPTY"})
+
 #     return rows
-# daily_construction_report.py
 import frappe
 from frappe.utils import getdate, today
+import datetime
 
 def execute(filters=None):
     columns = [{"fieldname": "section", "label": "Section", "fieldtype": "Data", "width": 120}]
@@ -197,6 +208,17 @@ def get_report_data(filters):
         except Exception:
             client_logo = ""
 
+    # ── DAY & DATE ───────────────────────────────────────────────
+    day_abbr = today_date.strftime("%A")[:2].upper()   # MO TU WE TH FR SA SU
+    formatted_date = today_date.strftime("%d.%m.%Y")
+
+    # ── WEATHER FIELDS FROM PROJECT ──────────────────────────────
+    custom_temp      = project.get("custom_temp")      or ""
+    custom_wind      = project.get("custom_wind")      or ""
+    custom_humidity  = project.get("custom_humidity")  or ""
+    custom_weather   = project.get("custom_weather")   or ""
+    custom_sea       = project.get("custom_sea")       or ""
+
     # ── HEADER ──────────────────────────────────────────────────
     rows.append({
         "section":          "HEADER",
@@ -207,6 +229,13 @@ def get_report_data(filters):
         "priority":         project.priority,
         "percent_complete": project.percent_complete or 0,
         "client_logo":      client_logo,
+        "day_abbr":         day_abbr,
+        "formatted_date":   formatted_date,
+        "custom_temp":      custom_temp,
+        "custom_wind":      custom_wind,
+        "custom_humidity":  custom_humidity,
+        "custom_weather":   custom_weather,
+        "custom_sea":       custom_sea,
     })
 
     # ── MACHINERY ───────────────────────────────────────────────

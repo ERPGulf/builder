@@ -1,5 +1,4 @@
 
-
 // frappe.query_reports["Site Activities Report"] = {
 
 //     filters: [
@@ -53,7 +52,6 @@
 //             padding: 10px 18px;
 //         }
 
-//         /* Logo row: client logo left, TDI logo right */
 //         #dcr-container .logo-row{
 //             display: flex;
 //             justify-content: space-between;
@@ -357,11 +355,18 @@
 //             { h: "Remarks", k: "remarks" },
 //         ];
 
+//         // ── Issues: 2 cols only ──────────────────────────────────
+//         const ISSUES_COLS = [
+//             { h: "#", k: "no" },
+//             { h: "Issues", k: "issues" },
+//         ];
+
 //         const MAX_COLS = Math.max(
 //             MACHINERY_COLS.length,
 //             MATERIAL_COLS.length,
 //             MANPOWER_COLS.length,
-//             ACTIVITY_COLS.length
+//             ACTIVITY_COLS.length,
+//             ISSUES_COLS.length
 //         );
 
 //         let html = `<div id="dcr-container"><table>`;
@@ -399,8 +404,6 @@
 //             const s = row.section;
 
 //             if (s === "HEADER") {
-
-//                 // Build client logo HTML (left side)
 //                 const clientLogoUrl = (row.client_logo && row.client_logo !== "&ndash;")
 //                     ? row.client_logo
 //                     : null;
@@ -413,26 +416,19 @@
 //                 <tr class="tr-project">
 //                     <td colspan="${MAX_COLS}">
 
-//                         <!-- ── Logo Row ── -->
 //                         <div class="logo-row">
-//                             <!-- Client logo LEFT -->
 //                             <div class="logo-left">
 //                                 ${clientLogoHtml}
 //                             </div>
-
-//                             <!-- Center title -->
 //                             <div class="logo-center">
 //                                 <div class="report-main-title">DAILY CONSTRUCTION REPORT</div>
 //                                 <div class="report-sub-title">Site Activities Report</div>
 //                             </div>
-
-//                             <!-- TDI logo RIGHT -->
 //                             <div class="logo-right">
 //                                 <img src="/files/TDI Logo.jpeg" alt="TDI Logo" />
 //                             </div>
 //                         </div>
 
-//                         <!-- ── Project Info Grid ── -->
 //                         <div class="hgrid">
 //                             <div><span class="hlabel">Project Ref:</span>${v(row, "project_ref")}</div>
 //                             <div><span class="hlabel">Project Name:</span>${v(row, "project_name")}</div>
@@ -478,6 +474,19 @@
 //                 html += `
 //                 <tr class="tr-empty">
 //                     <td colspan="${MAX_COLS}">No data</td>
+//                 </tr>`;
+//                 return;
+//             }
+
+//             // ── ISSUES ───────────────────────────────────────────
+//             if (s === "ISSUES_HEADER") { sectionBanner(ISSUES_COLS, "Issues"); return; }
+
+//             if (s === "ISSUE") { dataRow(currentCols, row, "tr-data"); return; }
+
+//             if (s === "ISSUES_EMPTY") {
+//                 html += `
+//                 <tr class="tr-empty">
+//                     <td colspan="${MAX_COLS}">No issues</td>
 //                 </tr>`;
 //                 return;
 //             }
@@ -743,6 +752,102 @@ frappe.query_reports["Site Activities Report"] = {
         }
 
         /* =========================
+           DAY / DATE / WEATHER BAR
+        ==========================*/
+        #dcr-container .weather-bar{
+            display: flex;
+            align-items: stretch;
+            gap: 0;
+            margin-top: 12px;
+            border: 1px solid #444;
+            font-size: 11px;
+            width: 100%;
+        }
+
+        #dcr-container .wb-block{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border-right: 1px solid #444;
+            padding: 6px 8px;
+            flex: 1 1 0;
+            min-width: 0;
+        }
+
+        #dcr-container .wb-block:last-child{
+            border-right: none;
+        }
+
+        #dcr-container .wb-label{
+            font-weight: bold;
+            font-size: 10px;
+            margin-bottom: 4px;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        #dcr-container .wb-value{
+            font-size: 12px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        /* checkbox grid inside weather-bar blocks */
+        #dcr-container .cb-grid{
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            width: 100%;
+        }
+
+        #dcr-container .cb-row{
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            white-space: nowrap;
+        }
+
+        #dcr-container .cb-box{
+            width: 13px;
+            height: 13px;
+            border: 1px solid #444;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            flex-shrink: 0;
+            background: #fff;
+        }
+
+        #dcr-container .cb-box.checked{
+            background: #222;
+            color: #fff;
+        }
+
+        #dcr-container .cb-text{
+            font-size: 10px;
+            line-height: 1;
+        }
+
+        /* day-of-week row (S S M T W TH F) */
+        #dcr-container .day-row{
+            display: flex;
+            gap: 2px;
+        }
+
+        #dcr-container .day-cell{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+
+        #dcr-container .day-letter{
+            font-size: 9px;
+            font-weight: bold;
+        }
+
+        /* =========================
            PRINT
         ==========================*/
         @media print {
@@ -776,6 +881,11 @@ frappe.query_reports["Site Activities Report"] = {
             #dcr-container .logo-placeholder{
                 display: none;
             }
+
+            #dcr-container .cb-box.checked{
+                background: #222 !important;
+                -webkit-print-color-adjust: exact;
+            }
         }
 
         `;
@@ -798,6 +908,48 @@ frappe.query_reports["Site Activities Report"] = {
             (row[k] != null && row[k] !== "")
                 ? String(row[k]).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
                 : "&ndash;";
+
+        // ── Helper: checkbox ────────────────────────────────────
+        function cb(checked) {
+            return `<span class="cb-box${checked ? " checked" : ""}"></span>`;
+        }
+
+        // ── Helper: build a checkbox-list block ─────────────────
+        // options  = [{label, value}]  — value is the string to match
+        // current  = the field value from the project
+        function cbList(options, current) {
+            const cur = (current || "").toString().toLowerCase().trim();
+            return `<div class="cb-grid">${
+                options.map(o => {
+                    const match = cur === o.value.toLowerCase().trim()
+                               || cur === o.label.toLowerCase().trim();
+                    return `<div class="cb-row">${cb(match)}<span class="cb-text">${o.label}</span></div>`;
+                }).join("")
+            }</div>`;
+        }
+
+        // ── Day-of-week cells ────────────────────────────────────
+        // day_abbr from Python is first 2 chars of weekday, e.g. "TH"
+        function dayOfWeekGrid(dayAbbr) {
+            const days = [
+                { label: "S",  val: "SU" },
+                { label: "S",  val: "SA" },
+                { label: "M",  val: "MO" },
+                { label: "T",  val: "TU" },
+                { label: "W",  val: "WE" },
+                { label: "TH", val: "TH" },
+                { label: "F",  val: "FR" },
+            ];
+            const cur = (dayAbbr || "").toUpperCase();
+            return `<div class="day-row">${
+                days.map(d => `
+                    <div class="day-cell">
+                        <span class="day-letter">${d.label}</span>
+                        ${cb(cur === d.val)}
+                    </div>`
+                ).join("")
+            }</div>`;
+        }
 
         // ── Column definitions ───────────────────────────────────
         const MACHINERY_COLS = [
@@ -843,7 +995,6 @@ frappe.query_reports["Site Activities Report"] = {
             { h: "Remarks", k: "remarks" },
         ];
 
-        // ── Issues: 2 cols only ──────────────────────────────────
         const ISSUES_COLS = [
             { h: "#", k: "no" },
             { h: "Issues", k: "issues" },
@@ -900,6 +1051,36 @@ frappe.query_reports["Site Activities Report"] = {
                     ? `<img src="${clientLogoUrl}" alt="Client Logo" />`
                     : `<div class="logo-placeholder">No Client Logo</div>`;
 
+                // ── Weather options ──────────────────────────────
+                const tempOptions = [
+                    { label: "0–30",  value: "0-30"  },
+                    { label: "30–40", value: "30-40" },
+                    { label: "40–50", value: "40-50" },
+                    { label: "50 up", value: "50up"  },
+                ];
+                const windOptions = [
+                    { label: "Still",  value: "still"  },
+                    { label: "Moder.", value: "moder." },
+                    { label: "High",   value: "high"   },
+                ];
+                const seaOptions = [
+                    { label: "Still",  value: "still"  },
+                    { label: "Moder.", value: "moder." },
+                    { label: "High",   value: "high"   },
+                ];
+                const humidityOptions = [
+                    { label: "Dry",    value: "dry"    },
+                    { label: "Moder.", value: "moder." },
+                    { label: "Humid",  value: "humid"  },
+                ];
+                const weatherOptions = [
+                    { label: "Bright Sun", value: "bright sun" },
+                    { label: "Clear",      value: "clear"      },
+                    { label: "Overcast",   value: "overcast"   },
+                    { label: "Rain",       value: "rain"       },
+                    { label: "Dust",       value: "dust"       },
+                ];
+
                 html += `
                 <tr class="tr-project">
                     <td colspan="${MAX_COLS}">
@@ -925,6 +1106,47 @@ frappe.query_reports["Site Activities Report"] = {
                             <div><span class="hlabel">Priority:</span>${v(row, "priority")}</div>
                             <div><span class="hlabel">% Complete:</span>${v(row, "percent_complete")}%</div>
                         </div>
+
+                        <!-- ── Day / Date / Weather Bar ── -->
+                        <div class="weather-bar">
+
+                            <div class="wb-block">
+                                <div class="wb-label">Day</div>
+                                ${dayOfWeekGrid(row.day_abbr || "")}
+                            </div>
+
+                            <div class="wb-block">
+                                <div class="wb-label">Date</div>
+                                <div class="wb-value">${v(row, "formatted_date")}</div>
+                            </div>
+
+                            <div class="wb-block">
+                                <div class="wb-label">Temp. °C</div>
+                                ${cbList(tempOptions, row.custom_temp)}
+                            </div>
+
+                            <div class="wb-block">
+                                <div class="wb-label">Wind</div>
+                                ${cbList(windOptions, row.custom_wind)}
+                            </div>
+
+                            <div class="wb-block">
+                                <div class="wb-label">Sea</div>
+                                ${cbList(seaOptions, row.custom_sea)}
+                            </div>
+
+                            <div class="wb-block">
+                                <div class="wb-label">Humidity</div>
+                                ${cbList(humidityOptions, row.custom_humidity)}
+                            </div>
+
+                            <div class="wb-block">
+                                <div class="wb-label">Weather</div>
+                                ${cbList(weatherOptions, row.custom_weather)}
+                            </div>
+
+                        </div>
+                        <!-- end weather bar -->
 
                     </td>
                 </tr>`;
@@ -966,7 +1188,6 @@ frappe.query_reports["Site Activities Report"] = {
                 return;
             }
 
-            // ── ISSUES ───────────────────────────────────────────
             if (s === "ISSUES_HEADER") { sectionBanner(ISSUES_COLS, "Issues"); return; }
 
             if (s === "ISSUE") { dataRow(currentCols, row, "tr-data"); return; }
