@@ -48,7 +48,8 @@ app_license = "mit"
 doctype_js = {
     "Employee Advance": "public/js/employee_advance.js",
     "ToDo": "public/js/todo_user_search.js",
-    "Project": "public/js/site_activities.js"
+    "Project": "public/js/site_activities.js",
+    "Payroll Settings": "public/js/payroll_settings.js"
 }
 
 

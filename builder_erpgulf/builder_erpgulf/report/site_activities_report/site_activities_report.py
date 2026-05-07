@@ -1,6 +1,7 @@
 
 # import frappe
 # from frappe.utils import getdate, today
+# import datetime
 
 # def execute(filters=None):
 #     columns = [{"fieldname": "section", "label": "Section", "fieldtype": "Data", "width": 120}]
@@ -26,6 +27,17 @@
 #         except Exception:
 #             client_logo = ""
 
+#     # ── DAY & DATE ───────────────────────────────────────────────
+#     day_abbr = today_date.strftime("%A")[:2].upper()   # MO TU WE TH FR SA SU
+#     formatted_date = today_date.strftime("%d.%m.%Y")
+
+#     # ── WEATHER FIELDS FROM PROJECT ──────────────────────────────
+#     custom_temp      = project.get("custom_temp")      or ""
+#     custom_wind      = project.get("custom_wind")      or ""
+#     custom_humidity  = project.get("custom_humidity")  or ""
+#     custom_weather   = project.get("custom_weather")   or ""
+#     custom_sea       = project.get("custom_sea")       or ""
+
 #     # ── HEADER ──────────────────────────────────────────────────
 #     rows.append({
 #         "section":          "HEADER",
@@ -36,6 +48,13 @@
 #         "priority":         project.priority,
 #         "percent_complete": project.percent_complete or 0,
 #         "client_logo":      client_logo,
+#         "day_abbr":         day_abbr,
+#         "formatted_date":   formatted_date,
+#         "custom_temp":      custom_temp,
+#         "custom_wind":      custom_wind,
+#         "custom_humidity":  custom_humidity,
+#         "custom_weather":   custom_weather,
+#         "custom_sea":       custom_sea,
 #     })
 
 #     # ── MACHINERY ───────────────────────────────────────────────
@@ -183,6 +202,18 @@
 import frappe
 from frappe.utils import getdate, today
 import datetime
+import re
+
+def strip_html(text):
+    if not text:
+        return ""
+    # Remove all HTML tags
+    clean = re.sub(r'<[^>]+>', '', text)
+    # Decode HTML entities
+    clean = clean.replace('&nbsp;', ' ').replace('&amp;', '&').replace('&lt;', '<').replace('&gt;', '>').replace('&quot;', '"')
+    # Collapse whitespace/newlines
+    clean = ' '.join(clean.split())
+    return clean.strip()
 
 def execute(filters=None):
     columns = [{"fieldname": "section", "label": "Section", "fieldtype": "Data", "width": 120}]
@@ -199,7 +230,6 @@ def get_report_data(filters):
     project = frappe.get_doc("Project", project_name)
     today_date = getdate(today())
 
-    # ── FETCH CLIENT LOGO FROM CUSTOMER ─────────────────────────
     client_logo = ""
     if project.get("customer"):
         try:
@@ -208,18 +238,15 @@ def get_report_data(filters):
         except Exception:
             client_logo = ""
 
-    # ── DAY & DATE ───────────────────────────────────────────────
-    day_abbr = today_date.strftime("%A")[:2].upper()   # MO TU WE TH FR SA SU
+    day_abbr = today_date.strftime("%A")[:2].upper()
     formatted_date = today_date.strftime("%d.%m.%Y")
 
-    # ── WEATHER FIELDS FROM PROJECT ──────────────────────────────
     custom_temp      = project.get("custom_temp")      or ""
     custom_wind      = project.get("custom_wind")      or ""
     custom_humidity  = project.get("custom_humidity")  or ""
     custom_weather   = project.get("custom_weather")   or ""
     custom_sea       = project.get("custom_sea")       or ""
 
-    # ── HEADER ──────────────────────────────────────────────────
     rows.append({
         "section":          "HEADER",
         "project_ref":      project.name,
@@ -238,7 +265,6 @@ def get_report_data(filters):
         "custom_sea":       custom_sea,
     })
 
-    # ── MACHINERY ───────────────────────────────────────────────
     rows.append({"section": "MACHINERY_HEADER"})
     for idx, m in enumerate(project.machinery_and_equipments_used or [], start=1):
         rows.append({
@@ -253,7 +279,6 @@ def get_report_data(filters):
             "remarks":     m.remarks,
         })
 
-    # ── MATERIALS ────────────────────────────────────────────────
     rows.append({"section": "MATERIAL_HEADER"})
     for m in project.materials_delivered_to_site or []:
         rows.append({
@@ -269,7 +294,6 @@ def get_report_data(filters):
             "remarks":     m.remarks,
         })
 
-    # ── MANPOWER ─────────────────────────────────────────────────
     rows.append({"section": "MANPOWER_HEADER"})
     for m in project.manpower_available_at_site or []:
         rows.append({
@@ -283,16 +307,14 @@ def get_report_data(filters):
             "hours":             m.hours,
         })
 
-    # ── FETCH TASKS ──────────────────────────────────────────────
     parents = frappe.db.get_all(
         "Task",
         filters={"project": project_name, "is_group": 1},
         fields=["name", "subject", "exp_start_date", "exp_end_date",
-                "progress", "custom_location"],
+                "progress", "custom_location", "description"],
         order_by="creation asc"
     )
 
-    # ── ACTIVITIES IN PROGRESS ───────────────────────────────────
     rows.append({"section": "INPROGRESS_HEADER"})
     act_no = 0
     for parent in parents:
@@ -304,7 +326,7 @@ def get_report_data(filters):
             "date_started": str(parent.exp_start_date) if parent.exp_start_date else "",
             "date_ended":   str(parent.exp_end_date)   if parent.exp_end_date   else "",
             "pct":          str(int(parent.progress or 0)) + "%",
-            "remarks":      "",
+            "remarks":      strip_html(parent.description or ""),
         })
 
         children = frappe.db.get_all(
@@ -324,10 +346,9 @@ def get_report_data(filters):
                 "date_started": str(child.exp_start_date) if child.exp_start_date else "",
                 "date_ended":   str(child.exp_end_date)   if child.exp_end_date   else "",
                 "pct":          str(int(child.progress or 0)) + "%",
-                "remarks":      child.description or "",
+                "remarks":      strip_html(child.description or ""),
             })
 
-    # ── ACTIVITIES PLANNED FOR NEXT DAY ──────────────────────────
     rows.append({"section": "NEXTDAY_HEADER"})
     has_next = False
     for parent in parents:
@@ -350,7 +371,7 @@ def get_report_data(filters):
                 "date_started": str(parent.exp_start_date) if parent.exp_start_date else "",
                 "date_ended":   str(parent.exp_end_date)   if parent.exp_end_date   else "",
                 "pct":          str(int(parent.progress or 0)) + "%",
-                "remarks":      "",
+                "remarks":      strip_html(parent.description or ""),
             })
             for idx, child in enumerate(future, start=1):
                 rows.append({
@@ -361,14 +382,13 @@ def get_report_data(filters):
                     "date_started": str(child.exp_start_date) if child.exp_start_date else "",
                     "date_ended":   str(child.exp_end_date)   if child.exp_end_date   else "",
                     "pct":          str(int(child.progress or 0)) + "%",
-                    "remarks":      child.description or "",
+                    "remarks":      strip_html(child.description or ""),
                 })
             has_next = True
 
     if not has_next:
         rows.append({"section": "NEXTDAY_EMPTY"})
 
-    # ── ISSUES ───────────────────────────────────────────────────
     rows.append({"section": "ISSUES_HEADER"})
     for idx, i in enumerate(project.custom_issues or [], start=1):
         rows.append({
