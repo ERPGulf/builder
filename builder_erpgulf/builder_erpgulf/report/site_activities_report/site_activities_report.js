@@ -412,14 +412,10 @@
 //                 ? String(row[k]).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
 //                 : "&ndash;";
 
-//         // ── Helper: checkbox ────────────────────────────────────
 //         function cb(checked) {
 //             return `<span class="cb-box${checked ? " checked" : ""}"></span>`;
 //         }
 
-//         // ── Helper: build a checkbox-list block ─────────────────
-//         // options  = [{label, value}]  — value is the string to match
-//         // current  = the field value from the project
 //         function cbList(options, current) {
 //             const cur = (current || "").toString().toLowerCase().trim();
 //             return `<div class="cb-grid">${
@@ -431,8 +427,6 @@
 //             }</div>`;
 //         }
 
-//         // ── Day-of-week cells ────────────────────────────────────
-//         // day_abbr from Python is first 2 chars of weekday, e.g. "TH"
 //         function dayOfWeekGrid(dayAbbr) {
 //             const days = [
 //                 { label: "S",  val: "SU" },
@@ -454,7 +448,6 @@
 //             }</div>`;
 //         }
 
-//         // ── Column definitions ───────────────────────────────────
 //         const MACHINERY_COLS = [
 //             { h: "#", k: "no" },
 //             { h: "Description", k: "description" },
@@ -515,7 +508,6 @@
 //         let currentCols = [];
 //         let rowIdx = 0;
 
-//         // ── Helpers ──────────────────────────────────────────────
 //         function sectionBanner(cols, title) {
 //             currentCols = cols;
 //             rowIdx = 0;
@@ -541,7 +533,6 @@
 //             </tr>`;
 //         }
 
-//         // ── Render rows ──────────────────────────────────────────
 //         data.forEach(row => {
 //             const s = row.section;
 
@@ -554,7 +545,6 @@
 //                     ? `<img src="${clientLogoUrl}" alt="Client Logo" />`
 //                     : `<div class="logo-placeholder">No Client Logo</div>`;
 
-//                 // ── Weather options ──────────────────────────────
 //                 const tempOptions = [
 //                     { label: "0–30",  value: "0-30"  },
 //                     { label: "30–40", value: "30-40" },
@@ -610,7 +600,6 @@
 //                             <div><span class="hlabel">% Complete:</span>${v(row, "percent_complete")}%</div>
 //                         </div>
 
-//                         <!-- ── Day / Date / Weather Bar ── -->
 //                         <div class="weather-bar">
 
 //                             <div class="wb-block">
@@ -649,7 +638,6 @@
 //                             </div>
 
 //                         </div>
-//                         <!-- end weather bar -->
 
 //                     </td>
 //                 </tr>`;
@@ -940,11 +928,21 @@ frappe.query_reports["Site Activities Report"] = {
            DATA ROWS
         ==========================*/
         #dcr-container .tr-data td,
-        #dcr-container .tr-act-parent td,
         #dcr-container .tr-act-child td{
             background: #fff;
             color: #222;
             font-size: 12px;
+            font-weight: normal;        /* child tasks: normal weight */
+            border: 1px solid #444;
+            height: 28px;
+        }
+
+        /* ── PARENT TASK ROWS: bold ── */
+        #dcr-container .tr-act-parent td{
+            background: #fff;
+            color: #222;
+            font-size: 12px;
+            font-weight: bold;          /* parent tasks: bold */
             border: 1px solid #444;
             height: 28px;
         }
@@ -1097,6 +1095,15 @@ frappe.query_reports["Site Activities Report"] = {
             #dcr-container .cb-box.checked{
                 background: #222 !important;
                 -webkit-print-color-adjust: exact;
+            }
+
+            /* preserve bold/normal on print */
+            #dcr-container .tr-act-parent td{
+                font-weight: bold !important;
+            }
+
+            #dcr-container .tr-act-child td{
+                font-weight: normal !important;
             }
         }
 
