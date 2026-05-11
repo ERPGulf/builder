@@ -182,7 +182,11 @@ doc_events = {
     },
     "Employee Grievance": {
         "on_submit": "builder_erpgulf.employee.on_submit"
-    }
+    },
+     "Salary Component": {
+        "before_save": "builder_erpgulf.employee.before_save",
+    },
+
 }
 # Scheduled Tasks
 # ---------------

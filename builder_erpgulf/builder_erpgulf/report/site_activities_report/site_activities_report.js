@@ -1133,11 +1133,15 @@ frappe.query_reports["Site Activities Report"] = {
         }
 
         function cbList(options, current) {
-            const cur = (current || "").toString().toLowerCase().trim();
+            // Normalize: lowercase, trim, remove dots and extra spaces for fuzzy match
+            const normalize = s => (s || "").toString().toLowerCase().replace(/\./g, "").replace(/\s+/g, "").trim();
+            const cur = normalize(current);
             return `<div class="cb-grid">${
                 options.map(o => {
-                    const match = cur === o.value.toLowerCase().trim()
-                               || cur === o.label.toLowerCase().trim();
+                    const match = cur !== "" && (
+                        cur === normalize(o.value) ||
+                        cur === normalize(o.label)
+                    );
                     return `<div class="cb-row">${cb(match)}<span class="cb-text">${o.label}</span></div>`;
                 }).join("")
             }</div>`;
