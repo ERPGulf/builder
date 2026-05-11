@@ -5,8 +5,9 @@ frappe.ui.form.on("Project", {
                 __("Site Activities"),
                 function () {
                     frappe.set_route(
-                        "site-activities",
-                        frm.doc.name   
+                        "query-report",
+                        "Site Activities Report",
+                        { project: frm.doc.name }
                     );
                 },
                 __("Actions")

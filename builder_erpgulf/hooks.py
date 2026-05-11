@@ -179,6 +179,9 @@ doc_events = {
     "Break Application": {
         "after_insert": "builder_erpgulf.workflow.workflow_notifications.set_initial_workflow_state",
         "after_save": "builder_erpgulf.workflow.workflow_notifications.email_notification"
+    },
+    "Employee Grievance": {
+        "on_submit": "builder_erpgulf.employee.on_submit"
     }
 }
 # Scheduled Tasks
