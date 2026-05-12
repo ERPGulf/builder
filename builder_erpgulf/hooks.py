@@ -286,12 +286,13 @@ doc_events = {
 # }
 
 fixtures = [
-    {
-        "dt": "DocType",
-        "filters": [
-            ["module", "=", "Builder ERPGulf"]
-        ]
-    },
+    # {
+    #     "dt": "DocType",
+    #     "filters": [
+    #         []
+    #         ["module", "=", "Builder ERPGulf"]
+    #     ]
+    # },
     {
         "dt": "Server Script",
         "filters": [
