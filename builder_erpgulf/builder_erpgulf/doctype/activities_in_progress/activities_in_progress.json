@@ -15,9 +15,8 @@
  "fields": [
   {
    "fieldname": "description",
-   "fieldtype": "Link",
-   "label": "Description",
-   "options": "Task"
+   "fieldtype": "Data",
+   "label": "Description"
   },
   {
    "fieldname": "area",
@@ -49,7 +48,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-05-11 15:07:47.048239",
+ "modified": "2026-05-12 12:59:34.006298",
  "modified_by": "Administrator",
  "module": "Builder ERPGulf",
  "name": "Activities In Progress",
