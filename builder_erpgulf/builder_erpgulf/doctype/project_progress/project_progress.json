@@ -1,0 +1,150 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:[series]",
+ "creation": "2026-05-11 15:12:33.509585",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "project",
+  "temp",
+  "weather",
+  "column_break_phdp",
+  "date",
+  "sea",
+  "wind",
+  "humidity",
+  "section_break_xpex",
+  "machinery_and_equipments_used",
+  "manpower_available_at_site",
+  "materials_delivered_to_site",
+  "activities_in_progress",
+  "activities_planned_for_the_next_day",
+  "issues"
+ ],
+ "fields": [
+  {
+   "fieldname": "project",
+   "fieldtype": "Link",
+   "label": "Project",
+   "options": "Project"
+  },
+  {
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "label": "Date"
+  },
+  {
+   "fieldname": "sea",
+   "fieldtype": "Select",
+   "label": "Sea",
+   "options": "\nStill\nModer\nHigh"
+  },
+  {
+   "fieldname": "temp",
+   "fieldtype": "Select",
+   "label": "Temp",
+   "options": "\n0-30\n30-40\n40-50\n50 up"
+  },
+  {
+   "fieldname": "humidity",
+   "fieldtype": "Select",
+   "label": "Humidity",
+   "options": "\nDry\nModer\nHumid"
+  },
+  {
+   "fieldname": "wind",
+   "fieldtype": "Select",
+   "label": "Wind",
+   "options": "\nStill\nModer\nHigh"
+  },
+  {
+   "fieldname": "weather",
+   "fieldtype": "Select",
+   "label": "Weather",
+   "options": "\nBright Sun\nClear\nOvercast\nRain\nDust"
+  },
+  {
+   "fieldname": "column_break_phdp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_xpex",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "machinery_and_equipments_used",
+   "fieldtype": "Table",
+   "label": "Machinery and Equipments Used",
+   "options": "Machinery and Equipments Used"
+  },
+  {
+   "fieldname": "manpower_available_at_site",
+   "fieldtype": "Table",
+   "label": "Manpower Available At Site",
+   "options": "Manpower Available At Site"
+  },
+  {
+   "fieldname": "materials_delivered_to_site",
+   "fieldtype": "Table",
+   "label": "Materials Delivered To Site",
+   "options": "Materials Delivered To Site"
+  },
+  {
+   "fieldname": "activities_in_progress",
+   "fieldtype": "Table",
+   "label": "Activities In Progress",
+   "options": "Activities In Progress"
+  },
+  {
+   "fieldname": "activities_planned_for_the_next_day",
+   "fieldtype": "Table",
+   "label": "Activities Planned for the Next Day",
+   "options": "Activities Planned for the Next Day"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Series",
+   "no_copy": 1,
+   "options": "PR-PGS-.YYYY.-",
+   "reqd": 1
+  },
+  {
+   "fieldname": "issues",
+   "fieldtype": "Table",
+   "label": "Issues",
+   "options": "Issues"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-05-11 15:35:46.614395",
+ "modified_by": "Administrator",
+ "module": "Builder ERPGulf",
+ "name": "Project Progress",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

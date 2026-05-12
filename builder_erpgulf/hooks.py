@@ -289,7 +289,6 @@ fixtures = [
     {
         "dt": "DocType",
         "filters": [
-            ["custom", "=", 1],
             ["module", "=", "Builder ERPGulf"]
         ]
     },
