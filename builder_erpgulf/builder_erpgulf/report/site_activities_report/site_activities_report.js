@@ -269,6 +269,18 @@
 //         }
 
 //         /* =========================
+//            TOTAL ROW
+//         ==========================*/
+//         #dcr-container .tr-total td{
+//             background: #fff;
+//             color: #222;
+//             font-size: 12px;
+//             font-weight: bold;
+//             border: 1px solid #444;
+//             height: 28px;
+//         }
+
+//         /* =========================
 //            EMPTY ROWS
 //         ==========================*/
 //         #dcr-container .tr-empty td{
@@ -422,6 +434,10 @@
 //             #dcr-container .tr-act-child td{
 //                 font-weight: normal !important;
 //             }
+
+//             #dcr-container .tr-total td{
+//                 font-weight: bold !important;
+//             }
 //         }
 
 //         `;
@@ -444,6 +460,8 @@
 //             (row[k] != null && row[k] !== "")
 //                 ? String(row[k]).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
 //                 : "&ndash;";
+
+//         const num = (row, k) => parseFloat(row[k] || 0) || 0;
 
 //         function cb(checked) {
 //             return `<span class="cb-box${checked ? " checked" : ""}"></span>`;
@@ -507,10 +525,12 @@
 //             { h: "Remarks", k: "remarks" },
 //         ];
 
+//         // MANPOWER_COLS order:
+//         // [0] Occupation (staff)  [1] Staff  [2] Occupation (labor)  [3] Skilled  [4] Unskilled  [5] Labor Units  [6] Labor Hours
 //         const MANPOWER_COLS = [
-//             { h: "Occupation", k: "labor_occupation" },
-//             { h: "Staff", k: "staff" },
 //             { h: "Occupation", k: "staff_occupation" },
+//             { h: "Staff", k: "staff" },
+//             { h: "Occupation", k: "labor_occupation" },
 //             { h: "Skilled", k: "skilled" },
 //             { h: "Unskilled", k: "unskilled" },
 //             { h: "Labor Units", k: "daily_total_units" },
@@ -540,9 +560,16 @@
 //             ISSUES_COLS.length
 //         );
 
+//         // ── Pre-collect manpower rows so we can compute totals ──
+//         const manpowerRows = data.filter(r => r.section === "MANPOWER");
+//         const totalStaff    = manpowerRows.reduce((s, r) => s + num(r, "staff"),    0);
+//         const totalSkilled  = manpowerRows.reduce((s, r) => s + num(r, "skilled"),  0);
+//         const totalUnskilled= manpowerRows.reduce((s, r) => s + num(r, "unskilled"),0);
+
 //         let html = `<div id="dcr-container"><table>`;
 //         let currentCols = [];
 //         let rowIdx = 0;
+//         let inManpower = false;
 
 //         function sectionBanner(cols, title) {
 //             currentCols = cols;
@@ -569,7 +596,24 @@
 //             </tr>`;
 //         }
 
-//         data.forEach(row => {
+//         function manpowerTotalRow() {
+//             // Columns: Occupation | Staff | Occupation | Skilled | Unskilled | Labor Units | Labor Hours
+//             // Bold "Total" label in col[0] and col[2], totals in their respective numeric columns
+//             const pad = MAX_COLS - MANPOWER_COLS.length;
+//             html += `
+//             <tr class="tr-total">
+//                 <td><strong>Total</strong></td>
+//                 <td><strong>${totalStaff || 0}</strong></td>
+//                 <td><strong>Total</strong></td>
+//                 <td><strong>${totalSkilled || 0}</strong></td>
+//                 <td><strong>${totalUnskilled || 0}</strong></td>
+//                 <td></td>
+//                 <td></td>
+//                 ${pad > 0 ? `<td colspan="${pad}"></td>` : ""}
+//             </tr>`;
+//         }
+
+//         data.forEach((row, i) => {
 //             const s = row.section;
 
 //             if (s === "HEADER") {
@@ -686,8 +730,23 @@
 //             if (s === "MATERIAL_HEADER") { sectionBanner(MATERIAL_COLS, "Materials Delivered to Site"); return; }
 //             if (s === "MATERIAL") { dataRow(currentCols, row, "tr-data"); return; }
 
-//             if (s === "MANPOWER_HEADER") { sectionBanner(MANPOWER_COLS, "Manpower Available at Site"); return; }
-//             if (s === "MANPOWER") { dataRow(currentCols, row, "tr-data"); return; }
+//             if (s === "MANPOWER_HEADER") {
+//                 inManpower = true;
+//                 sectionBanner(MANPOWER_COLS, "Manpower Available at Site");
+//                 return;
+//             }
+
+//             if (s === "MANPOWER") {
+//                 dataRow(currentCols, row, "tr-data");
+
+//                 // After the last MANPOWER row, inject the Total row
+//                 const nextRow = data[i + 1];
+//                 if (!nextRow || nextRow.section !== "MANPOWER") {
+//                     manpowerTotalRow();
+//                     inManpower = false;
+//                 }
+//                 return;
+//             }
 
 //             if (s === "INPROGRESS_HEADER") { sectionBanner(ACTIVITY_COLS, "Activities in Progress"); return; }
 //             if (s === "NEXTDAY_HEADER") { sectionBanner(ACTIVITY_COLS, "Activities Planned for the Next Day"); return; }
@@ -732,8 +791,6 @@
 //         $wrap.find(".dt-scrollable").after($(html));
 //     }
 // };
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-// License: GNU General Public License v3. See license.txt
 frappe.query_reports["Site Activities Report"] = {
 
     filters: [
@@ -1297,14 +1354,19 @@ frappe.query_reports["Site Activities Report"] = {
 
         // ── Pre-collect manpower rows so we can compute totals ──
         const manpowerRows = data.filter(r => r.section === "MANPOWER");
-        const totalStaff    = manpowerRows.reduce((s, r) => s + num(r, "staff"),    0);
-        const totalSkilled  = manpowerRows.reduce((s, r) => s + num(r, "skilled"),  0);
-        const totalUnskilled= manpowerRows.reduce((s, r) => s + num(r, "unskilled"),0);
+        const totalStaff     = manpowerRows.reduce((s, r) => s + num(r, "staff"),    0);
+        const totalSkilled   = manpowerRows.reduce((s, r) => s + num(r, "skilled"),  0);
+        const totalUnskilled = manpowerRows.reduce((s, r) => s + num(r, "unskilled"),0);
+
+        // ── Pre-collect subcontractor manpower rows so we can compute totals ──
+        const subconRows = data.filter(r => r.section === "SUBCON_MANPOWER");
+        const subconTotalStaff     = subconRows.reduce((s, r) => s + num(r, "staff"),    0);
+        const subconTotalSkilled   = subconRows.reduce((s, r) => s + num(r, "skilled"),  0);
+        const subconTotalUnskilled = subconRows.reduce((s, r) => s + num(r, "unskilled"),0);
 
         let html = `<div id="dcr-container"><table>`;
         let currentCols = [];
         let rowIdx = 0;
-        let inManpower = false;
 
         function sectionBanner(cols, title) {
             currentCols = cols;
@@ -1332,8 +1394,6 @@ frappe.query_reports["Site Activities Report"] = {
         }
 
         function manpowerTotalRow() {
-            // Columns: Occupation | Staff | Occupation | Skilled | Unskilled | Labor Units | Labor Hours
-            // Bold "Total" label in col[0] and col[2], totals in their respective numeric columns
             const pad = MAX_COLS - MANPOWER_COLS.length;
             html += `
             <tr class="tr-total">
@@ -1342,6 +1402,21 @@ frappe.query_reports["Site Activities Report"] = {
                 <td><strong>Total</strong></td>
                 <td><strong>${totalSkilled || 0}</strong></td>
                 <td><strong>${totalUnskilled || 0}</strong></td>
+                <td></td>
+                <td></td>
+                ${pad > 0 ? `<td colspan="${pad}"></td>` : ""}
+            </tr>`;
+        }
+
+        function subconManpowerTotalRow() {
+            const pad = MAX_COLS - MANPOWER_COLS.length;
+            html += `
+            <tr class="tr-total">
+                <td><strong>Total</strong></td>
+                <td><strong>${subconTotalStaff || 0}</strong></td>
+                <td><strong>Total</strong></td>
+                <td><strong>${subconTotalSkilled || 0}</strong></td>
+                <td><strong>${subconTotalUnskilled || 0}</strong></td>
                 <td></td>
                 <td></td>
                 ${pad > 0 ? `<td colspan="${pad}"></td>` : ""}
@@ -1466,19 +1541,31 @@ frappe.query_reports["Site Activities Report"] = {
             if (s === "MATERIAL") { dataRow(currentCols, row, "tr-data"); return; }
 
             if (s === "MANPOWER_HEADER") {
-                inManpower = true;
                 sectionBanner(MANPOWER_COLS, "Manpower Available at Site");
                 return;
             }
 
             if (s === "MANPOWER") {
                 dataRow(currentCols, row, "tr-data");
-
                 // After the last MANPOWER row, inject the Total row
                 const nextRow = data[i + 1];
                 if (!nextRow || nextRow.section !== "MANPOWER") {
                     manpowerTotalRow();
-                    inManpower = false;
+                }
+                return;
+            }
+
+            if (s === "SUBCON_MANPOWER_HEADER") {
+                sectionBanner(MANPOWER_COLS, "Subcontractor Manpower");
+                return;
+            }
+
+            if (s === "SUBCON_MANPOWER") {
+                dataRow(currentCols, row, "tr-data");
+                // After the last SUBCON_MANPOWER row, inject the Total row
+                const nextRow = data[i + 1];
+                if (!nextRow || nextRow.section !== "SUBCON_MANPOWER") {
+                    subconManpowerTotalRow();
                 }
                 return;
             }
