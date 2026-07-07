@@ -1,1 +1,21 @@
-[]
+[
+ {
+  "allow_guest": 0,
+  "api_method": null,
+  "cron_format": null,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Server Script",
+  "doctype_event": "After Insert",
+  "enable_rate_limit": 0,
+  "event_frequency": "All",
+  "modified": "2026-06-01 16:11:52.971571",
+  "module": "Builder ERPGulf",
+  "name": "Unrestricted Checkout",
+  "rate_limit_count": 5,
+  "rate_limit_seconds": 86400,
+  "reference_doctype": "Employee Checkin",
+  "script": "if doc.log_type == \"OUT\" and doc.shift:\r\n\r\n    attendance_date = frappe.utils.getdate(doc.time)\r\n\r\n    if not frappe.db.exists(\r\n        \"Attendance\",\r\n        {\r\n            \"employee\": doc.employee,\r\n            \"attendance_date\": attendance_date\r\n        }\r\n    ):\r\n\r\n        in_time = frappe.db.get_value(\r\n            \"Employee Checkin\",\r\n            {\r\n                \"employee\": doc.employee,\r\n                \"log_type\": \"IN\",\r\n                \"time\": [\"between\", [attendance_date, f\"{attendance_date} 23:59:59\"]]\r\n            },\r\n            \"time\",\r\n            order_by=\"time asc\"\r\n        )\r\n\r\n        out_time = doc.time\r\n\r\n        working_hours = 0\r\n        overtime_hours = 0\r\n\r\n        if in_time and out_time:\r\n\r\n            working_hours = frappe.utils.time_diff_in_hours(out_time, in_time)\r\n\r\n            shift = frappe.get_doc(\"Shift Type\", doc.shift)\r\n\r\n            shift_start = frappe.utils.get_datetime(\r\n                f\"{attendance_date} {shift.start_time}\"\r\n            )\r\n            shift_end = frappe.utils.get_datetime(\r\n                f\"{attendance_date} {shift.end_time}\"\r\n            )\r\n\r\n            if shift_end <= shift_start:\r\n                shift_end = frappe.utils.add_days(shift_end, 1)\r\n\r\n            shift_hours = frappe.utils.time_diff_in_hours(\r\n                shift_end, shift_start\r\n            )\r\n\r\n            if working_hours > shift_hours:\r\n                overtime_hours = working_hours - shift_hours\r\n\r\n        attendance = frappe.get_doc({\r\n            \"doctype\": \"Attendance\",\r\n            \"employee\": doc.employee,\r\n            \"attendance_date\": attendance_date,\r\n            \"status\": \"Present\",\r\n            \"shift\": doc.shift,\r\n            \"in_time\": in_time,\r\n            \"out_time\": out_time,\r\n            \"working_hours\": round(working_hours, 2),\r\n            \"overtime_hours\": round(overtime_hours, 2),\r\n            \"docstatus\": 0  # Draft\r\n        })\r\n\r\n        attendance.insert(ignore_permissions=True)\r\n\r\n        if not doc.custom_employee_chekin_location:\r\n            attendance.add_comment(\r\n                \"Info\",\r\n                \"Attendance created as Draft. Working & OT hours calculated, but check-in location is missing.\"\r\n            )",
+  "script_type": "DocType Event"
+ }
+]

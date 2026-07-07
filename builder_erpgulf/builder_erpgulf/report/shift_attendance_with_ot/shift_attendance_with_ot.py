@@ -96,6 +96,12 @@ def get_columns():
             "fieldtype": "Data",
             "width": 120,
         },
+		{ 
+            "label": _("Holiday Overtime"),
+            "fieldname": "holiday_overtime",
+            "fieldtype": "Data",
+            "width": 120,
+        },
 		{
 			"label": _("Break Hours"),
 			"fieldname": "custom_break_hours",
@@ -206,22 +212,26 @@ def get_data(filters):
             d.out_time = None
             d.working_hours = 0
             d.overtime_hours = 0
+            d.holiday_overtime = 0
             d.custom_break_hours = 0
             d.late_entry_hrs = None
             d.early_exit_hrs = None
 
     total_overtime = 0
+    total_holiday_overtime = 0
     employee = None
     company = None
 
     for d in data:
         total_overtime += flt(d.overtime_hours or 0)
+        total_holiday_overtime += flt(d.holiday_overtime or 0)
         employee = employee or d.employee
         company = company or d.company
 
     for d in data:
         d.working_hours = float_hours_to_hhmm(d.working_hours)
         d.overtime_hours = float_hours_to_hhmm(d.overtime_hours)
+        d.holiday_overtime = float_hours_to_hhmm(d.holiday_overtime)
         d.custom_break_hours = float_hours_to_hhmm(d.custom_break_hours)
 
     if total_overtime:
@@ -238,6 +248,7 @@ def get_data(filters):
             "out_time": None,
             "working_hours": None,
             "overtime_hours": float_hours_to_hhmm(total_overtime),
+			"holiday_overtime": float_hours_to_hhmm(total_holiday_overtime),
             "late_entry": None,
             "late_entry_hrs": None,
             "early_exit": None,
@@ -311,6 +322,7 @@ def add_weekend_records(data, filters):
                     "out_time": None,
                     "working_hours": 0,
                     "overtime_hours": 0,
+					"holiday_overtime": 0,
 					"custom_break_hours": 0,
                     "late_entry": 0,
                     "late_entry_hrs": None,
@@ -501,23 +513,47 @@ def get_attendance_without_checkins(filters):
 	return result
 
 
+# def update_data(data, filters):
+# 	for d in data:
+# 		update_late_entry(d, filters.consider_grace_period)
+# 		update_early_exit(d, filters.consider_grace_period)
+
+# 		d.working_hours = format_float_precision(d.working_hours)
+# 		d.overtime_hours = format_float_precision(d.overtime_hours)
+# 		d.custom_break_hours = format_float_precision(d.custom_break_hours)
+
+# 		d.in_time, d.out_time = format_in_out_time(d.in_time, d.out_time, d.attendance_date)
+# 		d.shift_start, d.shift_end = convert_datetime_to_time_for_same_date(d.shift_start, d.shift_end)
+# 		d.shift_actual_start, d.shift_actual_end = convert_datetime_to_time_for_same_date(
+# 			d.shift_actual_start, d.shift_actual_end
+# 		)
+
+# 	return data
 def update_data(data, filters):
-	for d in data:
-		update_late_entry(d, filters.consider_grace_period)
-		update_early_exit(d, filters.consider_grace_period)
+    for d in data:
+        update_late_entry(d, filters.consider_grace_period)
+        update_early_exit(d, filters.consider_grace_period)
 
-		d.working_hours = format_float_precision(d.working_hours)
-		d.overtime_hours = format_float_precision(d.overtime_hours)
-		d.custom_break_hours = format_float_precision(d.custom_break_hours)
 
-		d.in_time, d.out_time = format_in_out_time(d.in_time, d.out_time, d.attendance_date)
-		d.shift_start, d.shift_end = convert_datetime_to_time_for_same_date(d.shift_start, d.shift_end)
-		d.shift_actual_start, d.shift_actual_end = convert_datetime_to_time_for_same_date(
-			d.shift_actual_start, d.shift_actual_end
-		)
+        d.holiday_overtime = 0
 
-	return data
+        if d.attendance_date and d.attendance_date.strftime("%A") == "Friday":
+            if d.working_hours:
+                d.holiday_overtime = d.working_hours
+                d.working_hours = 0
 
+        d.working_hours = format_float_precision(d.working_hours)
+        d.overtime_hours = format_float_precision(d.overtime_hours)
+        d.holiday_overtime = format_float_precision(d.holiday_overtime)
+        d.custom_break_hours = format_float_precision(d.custom_break_hours)
+
+        d.in_time, d.out_time = format_in_out_time(d.in_time, d.out_time, d.attendance_date)
+        d.shift_start, d.shift_end = convert_datetime_to_time_for_same_date(d.shift_start, d.shift_end)
+        d.shift_actual_start, d.shift_actual_end = convert_datetime_to_time_for_same_date(
+            d.shift_actual_start, d.shift_actual_end
+        )
+
+    return data
 
 def format_float_precision(value):
 	precision = cint(frappe.db.get_default("float_precision")) or 2
