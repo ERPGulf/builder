@@ -293,12 +293,12 @@ fixtures = [
     #         ["module", "=", "Builder ERPGulf"]
     #     ]
     # },
-    {
-        "dt": "Server Script",
-        "filters": [
-            ["module", "=", "Builder ERPGulf"]
-        ]
-    },
+    # {
+    #     "dt": "Server Script",
+    #     "filters": [
+    #         ["module", "=", "Builder ERPGulf"]
+    #     ]
+    # },
     {
         "dt": "Custom Field",
         "filters": [
