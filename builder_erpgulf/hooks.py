@@ -162,9 +162,9 @@ doc_events = {
      "Salary Structure Assignment": {
         "before_save": "builder_erpgulf.salary.calculate_gross_salary"
     },
-    "Employee Advance": {
-        "validate": "builder_erpgulf.salary.validate_advance_limit"
-    },
+    # "Employee Advance": {
+    #     "validate": "builder_erpgulf.salary.validate_advance_limit"
+    # },
     # "Attendance Request": {
     #     "after_insert": "builder_erpgulf.workflow.workflow_notifications.set_initial_workflow_state",
     #     "after_save": "builder_erpgulf.workflow.workflow_notifications.email_notification"
