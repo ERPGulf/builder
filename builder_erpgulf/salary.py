@@ -8,8 +8,10 @@ def calculate_gross_salary(doc, method):
     accomodation = doc.custom_accomodation or 0
     special = doc.custom_special or 0
     allowance = doc.custom_allowance or 0
+    mobile = doc.custom_mobile_allowance or 0
+    hra = doc.custom_hra or 0
 
-    gross_salary = base + food + transport + variable + accomodation + special + allowance
+    gross_salary = base + food + transport + variable + accomodation + special + allowance + mobile + hra
     doc.gross_salary = gross_salary 
 
     frappe.msgprint(f"Gross Salary Calculated: {gross_salary}", alert=True)
