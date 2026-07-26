@@ -13,6 +13,8 @@ def calculate_gross_salary(doc, method):
 
     gross_salary = base + food + transport + variable + accomodation + special + allowance + mobile + hra
     doc.gross_salary = gross_salary 
+    doc.annual_gross_earning = gross_salary * 12
+    doc.ctc = doc.annual_gross_earning
 
     frappe.msgprint(f"Gross Salary Calculated: {gross_salary}", alert=True)
 
