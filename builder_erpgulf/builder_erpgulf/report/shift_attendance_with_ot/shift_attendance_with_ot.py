@@ -87,25 +87,29 @@ def get_columns():
 		{
 			"label": _("Total Working Hours"),
 			"fieldname": "working_hours",
-			"fieldtype": "Data",
+			"fieldtype": "Float",
+			"precision": 2,
 			"width": 100,
 		},
         {
             "label": _("Overtime Hours"),
             "fieldname": "overtime_hours",
-            "fieldtype": "Data",
+            "fieldtype": "Float",
+			"precision": 2,
             "width": 120,
         },
 		{ 
             "label": _("Holiday Overtime"),
             "fieldname": "holiday_overtime",
-            "fieldtype": "Data",
+            "fieldtype": "Float",
+			"precision": 2,
             "width": 120,
         },
 		{
 			"label": _("Break Hours"),
 			"fieldname": "custom_break_hours",
-			"fieldtype": "Data",
+			"fieldtype": "Float",
+			"precision": 2,
 			"width": 110,
 		},
 		{
@@ -228,11 +232,11 @@ def get_data(filters):
         employee = employee or d.employee
         company = company or d.company
 
-    for d in data:
-        d.working_hours = float_hours_to_hhmm(d.working_hours)
-        d.overtime_hours = float_hours_to_hhmm(d.overtime_hours)
-        d.holiday_overtime = float_hours_to_hhmm(d.holiday_overtime)
-        d.custom_break_hours = float_hours_to_hhmm(d.custom_break_hours)
+    # for d in data:
+    #     d.working_hours = float_hours_to_hhmm(d.working_hours)
+    #     d.overtime_hours = float_hours_to_hhmm(d.overtime_hours)
+    #     # d.holiday_overtime = float_hours_to_hhmm(d.holiday_overtime)
+    #     # d.custom_break_hours = float_hours_to_hhmm(d.custom_break_hours)
 
     if total_overtime:
         data.append(frappe._dict({
@@ -247,8 +251,8 @@ def get_data(filters):
             "in_time": None,
             "out_time": None,
             "working_hours": None,
-            "overtime_hours": float_hours_to_hhmm(total_overtime),
-			"holiday_overtime": float_hours_to_hhmm(total_holiday_overtime),
+            "overtime_hours": total_overtime,
+			"holiday_overtime": total_holiday_overtime,
             "late_entry": None,
             "late_entry_hrs": None,
             "early_exit": None,

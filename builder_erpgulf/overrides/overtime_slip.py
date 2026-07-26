@@ -4,6 +4,7 @@ from hrms.payroll.doctype.salary_structure_assignment.salary_structure_assignmen
 )
 from frappe.utils import cstr
 import frappe
+from frappe.utils import time_diff_in_hours, get_datetime
 
 
 class CustomOvertimeSlip(OvertimeSlip):
@@ -196,3 +197,102 @@ class CustomOvertimeSlip(OvertimeSlip):
             if standard_working_hours
             else 0
         )
+
+
+    def get_attendance_records(self):
+        records = []
+
+        if self.start_date and self.end_date:
+            records = frappe.get_all(
+                "Attendance",
+                fields=[
+                    "name",
+                    "attendance_date",
+                    "overtime_type",
+                    "actual_overtime_duration",
+                    "working_hours",              
+                    "standard_working_hours",
+                    "shift"
+                ],
+                filters={
+                    "employee": self.employee,
+                    "docstatus": 1,
+                    "attendance_date": (
+                        "between",
+                        [self.start_date, self.end_date],
+                    ),
+                    "status": "Present",
+                    "overtime_type": ["!=", ""],
+                },
+            )
+        for r in records:
+            frappe.msgprint(
+                f"{r.name} | {r.attendance_date} | {r.overtime_type}"
+            )
+        return records
+
+    def get_shift_hours(self, shift_name, attendance_date):
+        shift = frappe.get_cached_doc("Shift Type", shift_name)
+
+        start = get_datetime(f"{attendance_date} {shift.start_time}")
+        end = get_datetime(f"{attendance_date} {shift.end_time}")
+
+        if end < start:
+            end = frappe.utils.add_days(end, 1)
+
+        return time_diff_in_hours(end, start)
+    
+
+    def create_overtime_details_row_for_attendance(self, records):
+        frappe.msgprint("Custom create_overtime_details_row_for_attendance called")
+        self.overtime_details = []
+        overtime_type_cache = {}
+
+        holiday_date_map = self.get_holiday_map()
+
+        for record in records:
+            if record.overtime_type not in overtime_type_cache:
+                overtime_type_cache[record.overtime_type] = frappe.db.get_value(
+                    "Overtime Type",
+                    record.overtime_type,
+                    "maximum_overtime_hours_allowed",
+                )
+
+            frappe.msgprint(
+                f"""
+            Date: {record.attendance_date}
+            Working Hours: {record.working_hours}
+            Actual OT: {record.actual_overtime_duration}
+            Holiday: {holiday_date_map.get(cstr(record.attendance_date))}
+            """
+            )
+
+            maximum_overtime_hours_allowed = overtime_type_cache[
+                record.overtime_type
+            ]
+
+            # Holiday / Weekly Off -> use working hours
+            if holiday_date_map.get(cstr(record.attendance_date)):
+                overtime_duration = record.working_hours or 0.0
+            else:
+                # Working Day -> use actual overtime
+                overtime_duration = record.actual_overtime_duration or 0.0
+
+            # Apply maximum overtime limit
+            if maximum_overtime_hours_allowed > 0:
+                overtime_duration = min(
+                    overtime_duration,
+                    maximum_overtime_hours_allowed,
+                )
+
+            if overtime_duration > 0:
+                self.append(
+                    "overtime_details",
+                    {
+                        "reference_document": record.name,
+                        "date": record.attendance_date,
+                        "overtime_type": record.overtime_type,
+                        "overtime_duration": overtime_duration,
+                        "standard_working_hours": record.standard_working_hours,
+                    },
+                )
