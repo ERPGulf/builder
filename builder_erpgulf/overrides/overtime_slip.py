@@ -225,10 +225,10 @@ class CustomOvertimeSlip(OvertimeSlip):
                     "overtime_type": ["!=", ""],
                 },
             )
-        for r in records:
-            frappe.msgprint(
-                f"{r.name} | {r.attendance_date} | {r.overtime_type}"
-            )
+        # for r in records:
+        #     frappe.msgprint(
+        #         f"{r.name} | {r.attendance_date} | {r.overtime_type}"
+        #     )
         return records
 
     def get_shift_hours(self, shift_name, attendance_date):
@@ -244,7 +244,7 @@ class CustomOvertimeSlip(OvertimeSlip):
     
 
     def create_overtime_details_row_for_attendance(self, records):
-        frappe.msgprint("Custom create_overtime_details_row_for_attendance called")
+        # frappe.msgprint("Custom create_overtime_details_row_for_attendance called")
         self.overtime_details = []
         overtime_type_cache = {}
 
@@ -258,14 +258,14 @@ class CustomOvertimeSlip(OvertimeSlip):
                     "maximum_overtime_hours_allowed",
                 )
 
-            frappe.msgprint(
-                f"""
-            Date: {record.attendance_date}
-            Working Hours: {record.working_hours}
-            Actual OT: {record.actual_overtime_duration}
-            Holiday: {holiday_date_map.get(cstr(record.attendance_date))}
-            """
-            )
+            # frappe.msgprint(
+            #     f"""
+            # Date: {record.attendance_date}
+            # Working Hours: {record.working_hours}
+            # Actual OT: {record.actual_overtime_duration}
+            # Holiday: {holiday_date_map.get(cstr(record.attendance_date))}
+            # """
+            # )
 
             maximum_overtime_hours_allowed = overtime_type_cache[
                 record.overtime_type
