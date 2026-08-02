@@ -299,7 +299,8 @@ def add_weekend_records(data, filters):
         if not holiday_list_name:
             continue
 
-        end_date_for_emp = min(to_date, last_attendance_map.get(emp, to_date))
+        end_date_for_emp = to_date
+		# end_date_for_emp = min(to_date, last_attendance_map.get(emp, to_date))
 
         holidays = frappe.get_all(
             "Holiday",
