@@ -533,18 +533,20 @@ def get_attendance_without_checkins(filters):
 # 		)
 
 # 	return data
+
 def update_data(data, filters):
     for d in data:
         update_late_entry(d, filters.consider_grace_period)
         update_early_exit(d, filters.consider_grace_period)
-
 
         d.holiday_overtime = 0
 
         if d.attendance_date and d.attendance_date.strftime("%A") == "Friday":
             if d.working_hours:
                 d.holiday_overtime = d.working_hours
-                d.working_hours = 0
+
+            d.overtime_hours = 0
+            d.working_hours = 0
 
         d.working_hours = format_float_precision(d.working_hours)
         d.overtime_hours = format_float_precision(d.overtime_hours)
