@@ -91,11 +91,75 @@ class CustomOvertimeSlip(OvertimeSlip):
         self.custom_total_peak_overtime_hours = peak_hours
         self.custom_total_holiday_overtime_hours = holiday_hours
 
+    # def get_overtime_component_amounts(self):
+    #     """
+    #     Create separate Additional Salary entries for:
+    #     - Working Day Overtime
+    #     - Holiday / Weekend Overtime
+    #     """
+
+    #     if not self.overtime_details:
+    #         return {}
+
+    #     unique_overtime_types = {
+    #         row.overtime_type for row in self.overtime_details
+    #     }
+
+    #     self.overtime_types = self._bulk_load_overtime_types(
+    #         unique_overtime_types
+    #     )
+
+    #     holiday_date_map = self.get_holiday_map()
+
+    #     overtime_components = {}
+
+    #     for detail in self.overtime_details:
+
+    #         overtime_type = detail.overtime_type
+
+    #         hourly_rate = self._get_applicable_hourly_rate(
+    #             overtime_type,
+    #             detail.standard_working_hours,
+    #         )
+
+    #         overtime_amount = self.calculate_overtime_amount(
+    #             overtime_type,
+    #             hourly_rate,
+    #             detail.overtime_duration,
+    #             detail.date,
+    #             holiday_date_map,
+    #         )
+
+    #         overtime_config = self.overtime_types[overtime_type]
+
+    #         if holiday_date_map.get(cstr(detail.date)):
+    #             salary_component = (
+    #                 overtime_config.get(
+    #                     "custom_holiday_overtime_salary_component"
+    #                 )
+    #                 or overtime_config["overtime_salary_component"]
+    #             )
+    #         else:
+    #             salary_component = overtime_config[
+    #                 "overtime_salary_component"
+    #             ]
+
+    #         overtime_components[salary_component] = (
+    #             overtime_components.get(salary_component, 0)
+    #             + overtime_amount
+    #         )
+
+    #     return overtime_components
+
     def get_overtime_component_amounts(self):
         """
-        Create separate Additional Salary entries for:
-        - Working Day Overtime
-        - Holiday / Weekend Overtime
+        Create Additional Salary amounts using custom formulas.
+
+        Peak OT:
+            Basic / 30.42 / 8 * Peak Hours * 1.25
+
+        Holiday OT:
+            Basic / 30.42 / 8 * Holiday Hours * 1.5
         """
 
         if not self.overtime_details:
@@ -109,45 +173,97 @@ class CustomOvertimeSlip(OvertimeSlip):
             unique_overtime_types
         )
 
+        if not hasattr(self, "_cached_salary_slip"):
+            salary_structure = get_assigned_salary_structure(
+                self.employee,
+                self.start_date,
+            )
+            self._cached_salary_slip = self._make_salary_slip(
+                salary_structure
+            )
+
+        # Get Basic salary
+        ssa = frappe.get_value(
+            "Salary Structure Assignment",
+            {
+                "employee": self.employee,
+                "docstatus": 1,
+                "from_date": ["<=", self.start_date],
+            },
+            ["name", "base"],
+            as_dict=True,
+            order_by="from_date desc",
+        )
+
+        if not ssa:
+            frappe.throw("No Salary Structure Assignment found.")
+
+        basic_salary = ssa.base or 0
+        if not basic_salary:
+            return {}
+
+        hourly_rate = basic_salary / 30.42 / 8
+
+        peak_amount = round(
+            hourly_rate
+            * self.custom_total_peak_overtime_hours
+            * 1.25,
+            2,
+        )
+
+        holiday_amount = round(
+            hourly_rate
+            * self.custom_total_holiday_overtime_hours
+            * 1.5,
+            2,
+        )
+
         holiday_date_map = self.get_holiday_map()
+
+        peak_component = None
+        holiday_component = None
+
+        for detail in self.overtime_details:
+            overtime_config = self.overtime_types.get(detail.overtime_type)
+
+            if not overtime_config:
+                continue
+
+            if holiday_date_map.get(cstr(detail.date)):
+                if not holiday_component:
+                    holiday_component = (
+                        overtime_config.get(
+                            "custom_holiday_overtime_salary_component"
+                        )
+                        or overtime_config.get(
+                            "overtime_salary_component"
+                        )
+                    )
+            else:
+                if not peak_component:
+                    peak_component = overtime_config.get(
+                        "overtime_salary_component"
+                    )
+
+            if peak_component and holiday_component:
+                break
 
         overtime_components = {}
 
-        for detail in self.overtime_details:
+        if peak_component and peak_amount > 0:
+            overtime_components[peak_component] = peak_amount
 
-            overtime_type = detail.overtime_type
+        if holiday_component and holiday_amount > 0:
+            overtime_components[holiday_component] = holiday_amount
 
-            hourly_rate = self._get_applicable_hourly_rate(
-                overtime_type,
-                detail.standard_working_hours,
-            )
-
-            overtime_amount = self.calculate_overtime_amount(
-                overtime_type,
-                hourly_rate,
-                detail.overtime_duration,
-                detail.date,
-                holiday_date_map,
-            )
-
-            overtime_config = self.overtime_types[overtime_type]
-
-            if holiday_date_map.get(cstr(detail.date)):
-                salary_component = (
-                    overtime_config.get(
-                        "custom_holiday_overtime_salary_component"
-                    )
-                    or overtime_config["overtime_salary_component"]
-                )
-            else:
-                salary_component = overtime_config[
-                    "overtime_salary_component"
-                ]
-
-            overtime_components[salary_component] = (
-                overtime_components.get(salary_component, 0)
-                + overtime_amount
-            )
+        # frappe.msgprint(f"""
+        #     Basic Salary: {basic_salary}
+        #     Peak Hours: {self.custom_total_peak_overtime_hours}
+        #     Holiday Hours: {self.custom_total_holiday_overtime_hours}
+        #     Hourly Rate: {hourly_rate}
+        #     Peak Amount: {peak_amount}
+        #     Holiday Amount: {holiday_amount}
+        #     """)
 
         return overtime_components
 
