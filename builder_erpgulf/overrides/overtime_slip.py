@@ -65,6 +65,32 @@ class CustomOvertimeSlip(OvertimeSlip):
 
         return overtime_types
 
+    # def update_overtime_totals(self):
+    #     """
+    #     Calculate and store total peak and holiday overtime hours
+    #     on the Overtime Slip.
+    #     """
+
+    #     self.custom_total_peak_overtime_hours = 0
+    #     self.custom_total_holiday_overtime_hours = 0
+
+    #     if not self.overtime_details:
+    #         return
+
+    #     holiday_date_map = self.get_holiday_map()
+
+    #     peak_hours = 0
+    #     holiday_hours = 0
+
+    #     for detail in self.overtime_details:
+    #         if holiday_date_map.get(cstr(detail.date)):
+    #             holiday_hours += detail.overtime_duration or 0
+    #         else:
+    #             peak_hours += detail.overtime_duration or 0
+
+    #     self.custom_total_peak_overtime_hours = peak_hours
+    #     self.custom_total_holiday_overtime_hours = holiday_hours
+
     def update_overtime_totals(self):
         """
         Calculate and store total peak and holiday overtime hours
@@ -91,65 +117,13 @@ class CustomOvertimeSlip(OvertimeSlip):
         self.custom_total_peak_overtime_hours = peak_hours
         self.custom_total_holiday_overtime_hours = holiday_hours
 
-    # def get_overtime_component_amounts(self):
-    #     """
-    #     Create separate Additional Salary entries for:
-    #     - Working Day Overtime
-    #     - Holiday / Weekend Overtime
-    #     """
+        # Calculate total only when manual edit is enabled
+        if self.custom_manually_edit_hours:
+            self.total_overtime_duration = (
+                (self.custom_total_peak_overtime_hours or 0)
+                + (self.custom_total_holiday_overtime_hours or 0)
+            )
 
-    #     if not self.overtime_details:
-    #         return {}
-
-    #     unique_overtime_types = {
-    #         row.overtime_type for row in self.overtime_details
-    #     }
-
-    #     self.overtime_types = self._bulk_load_overtime_types(
-    #         unique_overtime_types
-    #     )
-
-    #     holiday_date_map = self.get_holiday_map()
-
-    #     overtime_components = {}
-
-    #     for detail in self.overtime_details:
-
-    #         overtime_type = detail.overtime_type
-
-    #         hourly_rate = self._get_applicable_hourly_rate(
-    #             overtime_type,
-    #             detail.standard_working_hours,
-    #         )
-
-    #         overtime_amount = self.calculate_overtime_amount(
-    #             overtime_type,
-    #             hourly_rate,
-    #             detail.overtime_duration,
-    #             detail.date,
-    #             holiday_date_map,
-    #         )
-
-    #         overtime_config = self.overtime_types[overtime_type]
-
-    #         if holiday_date_map.get(cstr(detail.date)):
-    #             salary_component = (
-    #                 overtime_config.get(
-    #                     "custom_holiday_overtime_salary_component"
-    #                 )
-    #                 or overtime_config["overtime_salary_component"]
-    #             )
-    #         else:
-    #             salary_component = overtime_config[
-    #                 "overtime_salary_component"
-    #             ]
-
-    #         overtime_components[salary_component] = (
-    #             overtime_components.get(salary_component, 0)
-    #             + overtime_amount
-    #         )
-
-    #     return overtime_components
 
     def get_overtime_component_amounts(self):
         """
