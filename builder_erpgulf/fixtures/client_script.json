@@ -9,5 +9,16 @@
   "name": "ot slip hour edit",
   "script": "frappe.ui.form.on(\"Overtime Slip\", {\r\n    refresh(frm) {\r\n        toggle_manual_edit(frm);\r\n    },\r\n\r\n    custom_manually_edit_hours(frm) {\r\n        toggle_manual_edit(frm);\r\n\r\n        if (frm.doc.custom_manually_edit_hours) {\r\n            update_total(frm);\r\n        }\r\n    },\r\n\r\n    custom_total_peak_overtime_hours(frm) {\r\n        update_total(frm);\r\n    },\r\n\r\n    custom_total_holiday_overtime_hours(frm) {\r\n        update_total(frm);\r\n    }\r\n});\r\n\r\nfunction toggle_manual_edit(frm) {\r\n    frm.set_df_property(\r\n        \"total_overtime_duration\",\r\n        \"read_only\",\r\n        !frm.doc.custom_manually_edit_hours\r\n    );\r\n}\r\n\r\nfunction update_total(frm) {\r\n    // Calculate only when manual edit is enabled\r\n    if (frm.doc.custom_manually_edit_hours) {\r\n        let total =\r\n            (flt(frm.doc.custom_total_peak_overtime_hours) || 0) +\r\n            (flt(frm.doc.custom_total_holiday_overtime_hours) || 0);\r\n\r\n        frm.set_value(\"total_overtime_duration\", total);\r\n    }\r\n}",
   "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Salary Slip",
+  "enabled": 1,
+  "modified": "2026-08-09 11:14:16.727372",
+  "module": "Builder ERPGulf",
+  "name": "absent - salary slip",
+  "script": "frappe.ui.form.on(\"Salary Slip\", {\r\n    refresh(frm) {\r\n        set_absent_days_read_only(frm);\r\n    },\r\n\r\n    custom_manually_edit_absent_days(frm) {\r\n        set_absent_days_read_only(frm);\r\n    }\r\n});\r\n\r\nfunction set_absent_days_read_only(frm) {\r\n    frm.set_df_property(\r\n        \"absent_days\",\r\n        \"read_only\",\r\n        frm.doc.custom_manually_edit_absent_days ? 0 : 1\r\n    );\r\n}",
+  "view": "Form"
  }
 ]
