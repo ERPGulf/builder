@@ -145,7 +145,8 @@ doctype_js = {
 override_doctype_class = {
     "Shift Type": "builder_erpgulf.overrides.shift_type.SameDayAbsentShiftType",
 	"Attendance": "builder_erpgulf.overrides.overtime.Attendance",
-    "Overtime Slip": "builder_erpgulf.overrides.overtime_slip.CustomOvertimeSlip"
+    "Overtime Slip": "builder_erpgulf.overrides.overtime_slip.CustomOvertimeSlip",
+    "Salary Slip": "builder_erpgulf.overrides.salary_slip.CustomSalarySlip"
 }
 
 
@@ -162,31 +163,21 @@ doc_events = {
      "Salary Structure Assignment": {
         "before_save": "builder_erpgulf.salary.calculate_gross_salary"
     },
-    # "Employee Advance": {
-    #     "validate": "builder_erpgulf.salary.validate_advance_limit"
-    # },
-    # "Attendance Request": {
-    #     "after_insert": "builder_erpgulf.workflow.workflow_notifications.set_initial_workflow_state",
-    #     "after_save": "builder_erpgulf.workflow.workflow_notifications.email_notification"
-    # },
-    # "Leave Application": {
-    #     "after_insert": "builder_erpgulf.workflow.workflow_notifications.set_initial_workflow_state",
-    #     "after_save": "builder_erpgulf.workflow.workflow_notifications.email_notification"
-    # },
-    # "Expense Claim": {
-    #     "after_insert": "builder_erpgulf.workflow.workflow_notifications.set_initial_workflow_state",
-    #     "after_save": "builder_erpgulf.wokflow.workflow_notifications.email_notification"
-    # },
-    # "Break Application": {
-    #     "after_insert": "builder_erpgulf.workflow.workflow_notifications.set_initial_workflow_state",
-    #     "after_save": "builder_erpgulf.workflow.workflow_notifications.email_notification"
-    # },
     "Employee Grievance": {
         "on_submit": "builder_erpgulf.employee.on_submit"
     },
      "Salary Component": {
         "before_save": "builder_erpgulf.employee.before_save",
     },
+    "Loan Application": {
+        "on_update": "builder_erpgulf.loan_notification.on_loan_application_update",
+    },
+    "Loan": {
+        "on_submit": "builder_erpgulf.loan_notification.on_loan_submit",
+    },
+    # "Salary Slip": {
+    #     "validate": "builder_erpgulf.salary_slip.preserve_absent_days"
+    # }
 
 }
 # Scheduled Tasks
