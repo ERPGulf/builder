@@ -445,7 +445,45 @@ frappe.query_reports["Site Activities Report"] = {
             document.head.appendChild(s);
         }
 
-        report.page.add_inner_button(__("Print"), () => window.print());
+        report.page.add_inner_button(__("Print"), () => {
+            const el = document.getElementById("dcr-container");
+            if (!el) {
+                frappe.msgprint(__("Report not rendered yet. Run it first."));
+                return;
+            }
+
+            // clone and make relative image paths absolute (new window is about:blank)
+            const clone = el.cloneNode(true);
+            clone.querySelectorAll("img").forEach(img => {
+                const src = img.getAttribute("src") || "";
+                if (src.startsWith("/")) img.setAttribute("src", location.origin + src);
+            });
+
+            const css = (document.getElementById("dcr-style") || {}).textContent || "";
+
+            const w = window.open("", "_blank", "width=1200,height=900");
+            w.document.write(
+                '<html><head><title>Daily Construction Report</title><style>'
+                + '@page { size: A4 landscape; margin: 8mm; }'
+                + 'body { margin: 0; background: #fff; }'
+                + '* { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }'
+                + '#dcr-container table { page-break-inside: auto; }'
+                + '#dcr-container tr { page-break-inside: avoid; }'
+                + css
+                + '</style></head><body>'
+                + clone.outerHTML
+                + '</body></html>'
+            );
+            w.document.close();
+
+            const fire = () => { w.focus(); w.print(); w.close(); };
+            const imgs = Array.from(w.document.images);
+            if (!imgs.length) { setTimeout(fire, 200); return; }
+            let left = imgs.length;
+            const done = () => { if (--left <= 0) setTimeout(fire, 150); };
+            imgs.forEach(i => i.complete ? done() : (i.onload = i.onerror = done));
+            setTimeout(fire, 3000); // hard fallback
+        });
     },
 
     after_datatable_render: function (dt) {
@@ -470,36 +508,34 @@ frappe.query_reports["Site Activities Report"] = {
         function cbList(options, current) {
             const normalize = s => (s || "").toString().toLowerCase().replace(/\./g, "").replace(/\s+/g, "").trim();
             const cur = normalize(current);
-            return `<div class="cb-grid">${
-                options.map(o => {
-                    const match = cur !== "" && (
-                        cur === normalize(o.value) ||
-                        cur === normalize(o.label)
-                    );
-                    return `<div class="cb-row">${cb(match)}<span class="cb-text">${o.label}</span></div>`;
-                }).join("")
-            }</div>`;
+            return `<div class="cb-grid">${options.map(o => {
+                const match = cur !== "" && (
+                    cur === normalize(o.value) ||
+                    cur === normalize(o.label)
+                );
+                return `<div class="cb-row">${cb(match)}<span class="cb-text">${o.label}</span></div>`;
+            }).join("")
+                }</div>`;
         }
 
         function dayOfWeekGrid(dayAbbr) {
             const days = [
-                { label: "S",  val: "SU" },
-                { label: "M",  val: "MO" },
-                { label: "T",  val: "TU" },
-                { label: "W",  val: "WE" },
+                { label: "S", val: "SU" },
+                { label: "M", val: "MO" },
+                { label: "T", val: "TU" },
+                { label: "W", val: "WE" },
                 { label: "TH", val: "TH" },
-                { label: "F",  val: "FR" },
-                { label: "S",  val: "SA" },
+                { label: "F", val: "FR" },
+                { label: "S", val: "SA" },
             ];
             const cur = (dayAbbr || "").toUpperCase();
-            return `<div class="day-row">${
-                days.map(d => `
+            return `<div class="day-row">${days.map(d => `
                     <div class="day-cell">
                         <span class="day-letter">${d.label}</span>
                         ${cb(cur === d.val)}
                     </div>`
-                ).join("")
-            }</div>`;
+            ).join("")
+                }</div>`;
         }
 
         const MACHINERY_COLS = [
@@ -562,15 +598,15 @@ frappe.query_reports["Site Activities Report"] = {
 
         // ── Pre-collect manpower rows so we can compute totals ──
         const manpowerRows = data.filter(r => r.section === "MANPOWER");
-        const totalStaff     = manpowerRows.reduce((s, r) => s + num(r, "staff"),    0);
-        const totalSkilled   = manpowerRows.reduce((s, r) => s + num(r, "skilled"),  0);
-        const totalUnskilled = manpowerRows.reduce((s, r) => s + num(r, "unskilled"),0);
+        const totalStaff = manpowerRows.reduce((s, r) => s + num(r, "staff"), 0);
+        const totalSkilled = manpowerRows.reduce((s, r) => s + num(r, "skilled"), 0);
+        const totalUnskilled = manpowerRows.reduce((s, r) => s + num(r, "unskilled"), 0);
 
         // ── Pre-collect subcontractor manpower rows so we can compute totals ──
         const subconRows = data.filter(r => r.section === "SUBCON_MANPOWER");
-        const subconTotalStaff     = subconRows.reduce((s, r) => s + num(r, "staff"),    0);
-        const subconTotalSkilled   = subconRows.reduce((s, r) => s + num(r, "skilled"),  0);
-        const subconTotalUnskilled = subconRows.reduce((s, r) => s + num(r, "unskilled"),0);
+        const subconTotalStaff = subconRows.reduce((s, r) => s + num(r, "staff"), 0);
+        const subconTotalSkilled = subconRows.reduce((s, r) => s + num(r, "skilled"), 0);
+        const subconTotalUnskilled = subconRows.reduce((s, r) => s + num(r, "unskilled"), 0);
 
         let html = `<div id="dcr-container"><table>`;
         let currentCols = [];
@@ -644,32 +680,32 @@ frappe.query_reports["Site Activities Report"] = {
                     : `<div class="logo-placeholder">No Client Logo</div>`;
 
                 const tempOptions = [
-                    { label: "0–30",  value: "0-30"  },
+                    { label: "0–30", value: "0-30" },
                     { label: "30–40", value: "30-40" },
                     { label: "40–50", value: "40-50" },
-                    { label: "50 up", value: "50up"  },
+                    { label: "50 up", value: "50up" },
                 ];
                 const windOptions = [
-                    { label: "Still",  value: "still"  },
+                    { label: "Still", value: "still" },
                     { label: "Moder.", value: "moder." },
-                    { label: "High",   value: "high"   },
+                    { label: "High", value: "high" },
                 ];
                 const seaOptions = [
-                    { label: "Still",  value: "still"  },
+                    { label: "Still", value: "still" },
                     { label: "Moder.", value: "moder." },
-                    { label: "High",   value: "high"   },
+                    { label: "High", value: "high" },
                 ];
                 const humidityOptions = [
-                    { label: "Dry",    value: "dry"    },
+                    { label: "Dry", value: "dry" },
                     { label: "Moder.", value: "moder." },
-                    { label: "Humid",  value: "humid"  },
+                    { label: "Humid", value: "humid" },
                 ];
                 const weatherOptions = [
                     { label: "Bright Sun", value: "bright sun" },
-                    { label: "Clear",      value: "clear"      },
-                    { label: "Overcast",   value: "overcast"   },
-                    { label: "Rain",       value: "rain"       },
-                    { label: "Dust",       value: "dust"       },
+                    { label: "Clear", value: "clear" },
+                    { label: "Overcast", value: "overcast" },
+                    { label: "Rain", value: "rain" },
+                    { label: "Dust", value: "dust" },
                 ];
 
                 html += `

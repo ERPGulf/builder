@@ -2,12 +2,84 @@ import frappe
 
 from hrms.payroll.doctype.salary_slip.salary_slip import SalarySlip
 from frappe.utils import add_days, cint, date_diff, flt, getdate
-from hrms.payroll.doctype.salary_slip.salary_slip import verify_lwp_days_corrected
+from hrms.payroll.doctype.salary_slip.salary_slip import (
+    verify_lwp_days_corrected,
+)
 
 
 class CustomSalarySlip(SalarySlip):
 
-    def get_working_days_details(self, lwp=None, for_preview=0, lwp_days_corrected=None):
+    def get_lwp_holidays_in_leave_applications(self, holidays):
+        """
+        Count holidays that fall within approved LWP Leave Applications.
+
+        Only Leave Types with is_lwp = 1 are considered.
+        Each holiday is counted only once.
+        """
+
+        if not holidays:
+            return 0
+
+        holiday_dates = {getdate(d) for d in holidays}
+        counted_holidays = set()
+
+        leave_applications = frappe.get_all(
+            "Leave Application",
+            filters={
+                "employee": self.employee,
+                "status": "Approved",
+                "from_date": ["<=", self.end_date],
+                "to_date": [">=", self.start_date],
+            },
+            fields=[
+                "name",
+                "leave_type",
+                "from_date",
+                "to_date",
+            ],
+        )
+
+        for leave in leave_applications:
+
+            is_lwp = frappe.db.get_value(
+                "Leave Type",
+                leave.leave_type,
+                "is_lwp",
+            )
+
+            if not is_lwp:
+                continue
+
+            leave_from = max(
+                getdate(leave.from_date),
+                getdate(self.start_date),
+            )
+
+            leave_to = min(
+                getdate(leave.to_date),
+                getdate(self.end_date),
+            )
+
+            current_date = leave_from
+
+            while current_date <= leave_to:
+
+                if (
+                    current_date in holiday_dates
+                    and current_date not in counted_holidays
+                ):
+                    counted_holidays.add(current_date)
+
+                current_date = add_days(current_date, 1)
+
+        return len(counted_holidays)
+
+    def get_working_days_details(
+        self,
+        lwp=None,
+        for_preview=0,
+        lwp_days_corrected=None,
+    ):
         payroll_settings = frappe.get_cached_value(
             "Payroll Settings",
             None,
@@ -27,10 +99,14 @@ class CustomSalarySlip(SalarySlip):
         )
 
         daily_wages_fraction_for_half_day = (
-            flt(payroll_settings.daily_wages_fraction_for_half_day) or 0.5
+            flt(payroll_settings.daily_wages_fraction_for_half_day)
+            or 0.5
         )
 
-        working_days = date_diff(self.end_date, self.start_date) + 1
+        working_days = date_diff(
+            self.end_date,
+            self.start_date,
+        ) + 1
 
         if for_preview:
             self.total_working_days = working_days
@@ -39,17 +115,23 @@ class CustomSalarySlip(SalarySlip):
 
         holidays = self.get_holidays_for_employee(
             self.start_date,
-            self.end_date
+            self.end_date,
         )
 
         working_days_list = [
-            add_days(getdate(self.start_date), days=day)
+            add_days(
+                getdate(self.start_date),
+                days=day,
+            )
             for day in range(0, working_days)
         ]
 
-        if not cint(payroll_settings.include_holidays_in_total_working_days):
+        if not cint(
+            payroll_settings.include_holidays_in_total_working_days
+        ):
             working_days_list = [
-                i for i in working_days_list if i not in holidays
+                i for i in working_days_list
+                if i not in holidays
             ]
 
             working_days -= len(holidays)
@@ -76,6 +158,15 @@ class CustomSalarySlip(SalarySlip):
                 )
             )
 
+            # ---------------------------------------------------------
+            # Add holidays falling inside approved LWP leave
+            # ---------------------------------------------------------
+            holiday_lwp = self.get_lwp_holidays_in_leave_applications(
+                holidays
+            )
+
+            actual_lwp += holiday_lwp
+
             if manual_absent_days:
                 absent = flt(self.absent_days)
             else:
@@ -83,11 +174,23 @@ class CustomSalarySlip(SalarySlip):
                 self.absent_days = absent
 
         else:
-            actual_lwp = self.calculate_lwp_or_ppl_based_on_leave_application(
-                holidays,
-                working_days_list,
-                daily_wages_fraction_for_half_day,
+
+            actual_lwp = (
+                self.calculate_lwp_or_ppl_based_on_leave_application(
+                    holidays,
+                    working_days_list,
+                    daily_wages_fraction_for_half_day,
+                )
             )
+
+            # ---------------------------------------------------------
+            # Add holidays falling inside approved LWP leave
+            # ---------------------------------------------------------
+            holiday_lwp = self.get_lwp_holidays_in_leave_applications(
+                holidays
+            )
+
+            actual_lwp += holiday_lwp
 
             absent = 0
 
@@ -98,7 +201,9 @@ class CustomSalarySlip(SalarySlip):
             frappe.msgprint(
                 frappe._(
                     "Leave Without Pay does not match with approved {} records"
-                ).format(payroll_settings.payroll_based_on)
+                ).format(
+                    payroll_settings.payroll_based_on
+                )
             )
 
         self.leave_without_pay = lwp
@@ -130,8 +235,6 @@ class CustomSalarySlip(SalarySlip):
                     )
 
                     if manual_absent_days:
-                        # Manual Absent Days already contains
-                        # the value the user wants to use.
                         pass
                     else:
                         self.absent_days += unmarked_days
@@ -143,7 +246,6 @@ class CustomSalarySlip(SalarySlip):
                 )
 
                 if manual_absent_days:
-                    # Do not modify manually entered Absent Days.
                     pass
                 else:
                     self.absent_days += (
