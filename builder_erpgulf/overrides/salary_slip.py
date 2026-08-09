@@ -148,6 +148,7 @@ class CustomSalarySlip(SalarySlip):
 
         manual_absent_days = self.custom_manually_edit_absent_days
 
+
         if payroll_settings.payroll_based_on == "Attendance":
 
             actual_lwp, calculated_absent = (
@@ -157,15 +158,6 @@ class CustomSalarySlip(SalarySlip):
                     consider_marked_attendance_on_holidays,
                 )
             )
-
-            # ---------------------------------------------------------
-            # Add holidays falling inside approved LWP leave
-            # ---------------------------------------------------------
-            holiday_lwp = self.get_lwp_holidays_in_leave_applications(
-                holidays
-            )
-
-            actual_lwp += holiday_lwp
 
             if manual_absent_days:
                 absent = flt(self.absent_days)
@@ -183,16 +175,45 @@ class CustomSalarySlip(SalarySlip):
                 )
             )
 
-            # ---------------------------------------------------------
-            # Add holidays falling inside approved LWP leave
-            # ---------------------------------------------------------
-            holiday_lwp = self.get_lwp_holidays_in_leave_applications(
-                holidays
+            absent = 0
+
+
+        holiday_lwp = self.get_lwp_holidays_in_leave_applications(
+            holidays
+        )
+
+        actual_lwp += holiday_lwp
+
+
+        if payroll_settings.payroll_based_on == "Attendance":
+
+            consider_unmarked_attendance_as = (
+                payroll_settings.consider_unmarked_attendance_as
+                or "Present"
             )
 
-            actual_lwp += holiday_lwp
+            if (
+                consider_unmarked_attendance_as == "Absent"
+                and not manual_absent_days
+            ):
+                unmarked_days = self.get_unmarked_days(
+                    payroll_settings.include_holidays_in_total_working_days,
+                    holidays,
+                )
 
-            absent = 0
+                self.absent_days += unmarked_days
+
+            half_absent_days = self.get_half_absent_days(
+                consider_marked_attendance_on_holidays,
+                holidays,
+            )
+
+            if not manual_absent_days:
+                self.absent_days += (
+                    half_absent_days
+                    * daily_wages_fraction_for_half_day
+                )
+
 
         if not lwp:
             lwp = actual_lwp
@@ -209,57 +230,16 @@ class CustomSalarySlip(SalarySlip):
         self.leave_without_pay = lwp
         self.total_working_days = working_days
 
-        payment_days = self.get_payment_days(
-            payroll_settings.include_holidays_in_total_working_days
+
+        self.payment_days = (
+            flt(self.total_working_days)
+            - flt(self.absent_days)
+            - flt(self.leave_without_pay)
         )
 
-        if flt(payment_days) > flt(lwp):
+        # Payment days cannot be negative
+        self.payment_days = max(self.payment_days, 0)
 
-            self.payment_days = flt(payment_days) - flt(lwp)
-
-            if payroll_settings.payroll_based_on == "Attendance":
-                self.payment_days -= flt(absent)
-
-            consider_unmarked_attendance_as = (
-                payroll_settings.consider_unmarked_attendance_as
-                or "Present"
-            )
-
-            if payroll_settings.payroll_based_on == "Attendance":
-
-                if consider_unmarked_attendance_as == "Absent":
-
-                    unmarked_days = self.get_unmarked_days(
-                        payroll_settings.include_holidays_in_total_working_days,
-                        holidays,
-                    )
-
-                    if manual_absent_days:
-                        pass
-                    else:
-                        self.absent_days += unmarked_days
-                        self.payment_days -= unmarked_days
-
-                half_absent_days = self.get_half_absent_days(
-                    consider_marked_attendance_on_holidays,
-                    holidays,
-                )
-
-                if manual_absent_days:
-                    pass
-                else:
-                    self.absent_days += (
-                        half_absent_days
-                        * daily_wages_fraction_for_half_day
-                    )
-
-                self.payment_days -= (
-                    half_absent_days
-                    * daily_wages_fraction_for_half_day
-                )
-
-        else:
-            self.payment_days = 0
 
         if lwp_days_corrected and lwp_days_corrected > 0:
             if verify_lwp_days_corrected(
