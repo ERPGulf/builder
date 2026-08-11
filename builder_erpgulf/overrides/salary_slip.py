@@ -148,7 +148,6 @@ class CustomSalarySlip(SalarySlip):
 
         manual_absent_days = self.custom_manually_edit_absent_days
 
-
         if payroll_settings.payroll_based_on == "Attendance":
 
             actual_lwp, calculated_absent = (
@@ -177,13 +176,11 @@ class CustomSalarySlip(SalarySlip):
 
             absent = 0
 
-
         holiday_lwp = self.get_lwp_holidays_in_leave_applications(
             holidays
         )
 
         actual_lwp += holiday_lwp
-
 
         if payroll_settings.payroll_based_on == "Attendance":
 
@@ -214,7 +211,6 @@ class CustomSalarySlip(SalarySlip):
                     * daily_wages_fraction_for_half_day
                 )
 
-
         if not lwp:
             lwp = actual_lwp
 
@@ -230,7 +226,6 @@ class CustomSalarySlip(SalarySlip):
         self.leave_without_pay = lwp
         self.total_working_days = working_days
 
-
         self.payment_days = (
             flt(self.total_working_days)
             - flt(self.absent_days)
@@ -240,7 +235,6 @@ class CustomSalarySlip(SalarySlip):
         # Payment days cannot be negative
         self.payment_days = max(self.payment_days, 0)
 
-
         if lwp_days_corrected and lwp_days_corrected > 0:
             if verify_lwp_days_corrected(
                 self.employee,
@@ -249,3 +243,38 @@ class CustomSalarySlip(SalarySlip):
                 lwp_days_corrected,
             ):
                 self.payment_days += lwp_days_corrected
+
+    
+    def calculate_component_amounts(self, component_type):
+        """
+        Calculate salary component amounts.
+
+        When Manual Edit Amount is enabled on the Salary Slip,
+        preserve manually entered deduction amounts.
+        """
+
+        if component_type == "deductions" and self.custom_manual_edit_amount:
+
+            # Store the current deduction amounts before
+            # standard HRMS recalculates them.
+            manual_deduction_amounts = {
+                row.salary_component: flt(row.amount)
+                for row in self.deductions or []
+                if row.salary_component
+            }
+
+            # Run the standard HRMS deduction calculation.
+            super().calculate_component_amounts(component_type)
+
+            # Restore the manually entered amounts.
+            for row in self.deductions or []:
+                if row.salary_component in manual_deduction_amounts:
+                    row.amount = manual_deduction_amounts[
+                        row.salary_component
+                    ]
+
+            return
+
+        # Normal HRMS calculation.
+        super().calculate_component_amounts(component_type)
+

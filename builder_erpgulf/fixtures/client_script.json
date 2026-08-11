@@ -20,5 +20,16 @@
   "name": "absent - salary slip",
   "script": "frappe.ui.form.on(\"Salary Slip\", {\r\n    refresh(frm) {\r\n        set_absent_days_read_only(frm);\r\n    },\r\n\r\n    custom_manually_edit_absent_days(frm) {\r\n        set_absent_days_read_only(frm);\r\n    }\r\n});\r\n\r\nfunction set_absent_days_read_only(frm) {\r\n    frm.set_df_property(\r\n        \"absent_days\",\r\n        \"read_only\",\r\n        frm.doc.custom_manually_edit_absent_days ? 0 : 1\r\n    );\r\n}",
   "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Salary Slip",
+  "enabled": 1,
+  "modified": "2026-08-11 09:48:49.621771",
+  "module": "Builder ERPGulf",
+  "name": "deduction - salary slip",
+  "script": "frappe.ui.form.on(\"Salary Slip\", {\r\n    refresh(frm) {\r\n        toggle_deduction_amount_edit(frm);\r\n    },\r\n\r\n    custom_manual_edit_amount(frm) {\r\n        toggle_deduction_amount_edit(frm);\r\n    },\r\n\r\n    deductions_add(frm) {\r\n        toggle_deduction_amount_edit(frm);\r\n    }\r\n});\r\n\r\nfunction toggle_deduction_amount_edit(frm) {\r\n    if (!frm.fields_dict.deductions) {\r\n        return;\r\n    }\r\n\r\n    const read_only = !frm.doc.custom_manual_edit_amount;\r\n\r\n    frm.fields_dict.deductions.grid.update_docfield_property(\r\n        \"amount\",\r\n        \"read_only\",\r\n        read_only ? 1 : 0\r\n    );\r\n\r\n    frm.fields_dict.deductions.grid.refresh();\r\n}",
+  "view": "Form"
  }
 ]
