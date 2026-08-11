@@ -107,10 +107,11 @@ class CustomSalarySlip(SalarySlip):
             self.end_date,
             self.start_date,
         ) + 1
+        self.total_working_days = working_days
 
         if for_preview:
             self.total_working_days = working_days
-            self.payment_days = working_days
+            # self.payment_days = working_days
             return
 
         holidays = self.get_holidays_for_employee(
