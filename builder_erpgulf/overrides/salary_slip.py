@@ -245,37 +245,63 @@ class CustomSalarySlip(SalarySlip):
             ):
                 self.payment_days += lwp_days_corrected
 
-    
+    # def calculate_component_amounts(self, component_type):
+    #     """
+    #     Calculate salary component amounts.
+
+    #     When Manual Edit Amount is enabled on the Salary Slip,
+    #     preserve manually entered deduction amounts.
+    #     """
+
+    #     if component_type == "deductions" and self.custom_manual_edit_amount:
+
+    #         # Store the current deduction amounts before
+    #         # standard HRMS recalculates them.
+    #         manual_deduction_amounts = {
+    #             row.salary_component: flt(row.amount)
+    #             for row in self.deductions or []
+    #             if row.salary_component
+    #         }
+
+    #         # Run the standard HRMS deduction calculation.
+    #         super().calculate_component_amounts(component_type)
+
+    #         # Restore the manually entered amounts.
+    #         for row in self.deductions or []:
+    #             if row.salary_component in manual_deduction_amounts:
+    #                 row.amount = manual_deduction_amounts[
+    #                     row.salary_component
+    #                 ]
+
+    #         return
+
+    #     # Normal HRMS calculation.
+    #     super().calculate_component_amounts(component_type)
+
     def calculate_component_amounts(self, component_type):
         """
         Calculate salary component amounts.
 
-        When Manual Edit Amount is enabled on the Salary Slip,
-        preserve manually entered deduction amounts.
+        When Manual Edit Amount is enabled:
+        - Existing deduction rows are preserved.
+        - Deduction amounts can be manually edited.
+        - Deleted deduction rows remain deleted.
+        - Newly added deduction rows remain.
+        - HRMS does not rebuild deductions from the Salary Structure.
+
+        Earnings continue to use the standard HRMS calculation.
         """
 
-        if component_type == "deductions" and self.custom_manual_edit_amount:
+        if component_type == "deductions":
 
-            # Store the current deduction amounts before
-            # standard HRMS recalculates them.
-            manual_deduction_amounts = {
-                row.salary_component: flt(row.amount)
-                for row in self.deductions or []
-                if row.salary_component
-            }
+            # When manual deduction editing is enabled,
+            # preserve exactly what is currently in the table.
+            if self.custom_manual_edit_amount:
+                return
 
-            # Run the standard HRMS deduction calculation.
+            # Normal HRMS deduction calculation
             super().calculate_component_amounts(component_type)
-
-            # Restore the manually entered amounts.
-            for row in self.deductions or []:
-                if row.salary_component in manual_deduction_amounts:
-                    row.amount = manual_deduction_amounts[
-                        row.salary_component
-                    ]
-
             return
 
-        # Normal HRMS calculation.
+        # Normal HRMS calculation for earnings
         super().calculate_component_amounts(component_type)
-
