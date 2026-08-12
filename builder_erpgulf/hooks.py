@@ -170,11 +170,12 @@ doc_events = {
         "before_save": "builder_erpgulf.employee.before_save",
     },
     "Loan Application": {
-        "on_update": "builder_erpgulf.loan_notification.on_loan_application_update",
+        "on_submit": "builder_erpgulf.loan_email.send_loan_application_email",
     },
     "Loan": {
-        "on_submit": "builder_erpgulf.loan_notification.on_loan_submit",
+        "on_update": "builder_erpgulf.loan_email.send_loan_disbursement_email",
     },
+    
     # "Salary Slip": {
     #     "validate": "builder_erpgulf.salary_slip.preserve_absent_days"
     # }
