@@ -61,15 +61,12 @@ def send_loan_application_email(doc, method=None):
         Loan Application Rejected
     """
 
-    # Only process submitted Loan Applications
     if doc.docstatus != 1:
         return
 
-    # Only process Approved or Rejected applications
     if doc.status not in ("Approved", "Rejected"):
         return
 
-    # Get employee email
     email = get_employee_email(doc.applicant)
 
     if not email:
@@ -79,21 +76,16 @@ def send_loan_application_email(doc, method=None):
         )
         return
 
-    # Get employee name
     employee_name = get_employee_name(doc.applicant)
 
-    # Get company currency
     currency = get_currency(doc.company)
 
-    # Format loan amount
     loan_amount = fmt_money(
         doc.loan_amount or 0,
         currency=currency
     )
 
-    # ---------------------------------------------------------
-    # APPROVED
-    # ---------------------------------------------------------
+    
 
     if doc.status == "Approved":
 
@@ -146,9 +138,7 @@ def send_loan_application_email(doc, method=None):
         </p>
         """
 
-    # ---------------------------------------------------------
-    # REJECTED
-    # ---------------------------------------------------------
+   
 
     else:
 
@@ -189,19 +179,15 @@ def send_loan_disbursement_email(doc, method=None):
     means the loan has been disbursed.
     """
 
-    # Only process submitted Loans
     if doc.docstatus != 1:
         return
 
-    # In your setup, Sanctioned means disbursed
     if doc.status != "Sanctioned":
         return
 
-    # Make sure an applicant exists
     if not doc.applicant:
         return
 
-    # Get employee email
     email = get_employee_email(doc.applicant)
 
     if not email:
@@ -211,15 +197,11 @@ def send_loan_disbursement_email(doc, method=None):
         )
         return
 
-    # Get employee name
     employee_name = get_employee_name(doc.applicant)
 
-    # Get company currency
     currency = get_currency(doc.company)
 
-    # ---------------------------------------------------------
-    # GET LOAN AMOUNT FROM LOAN APPLICATION
-    # ---------------------------------------------------------
+
 
     loan_amount = doc.loan_amount or 0
 
@@ -238,9 +220,7 @@ def send_loan_disbursement_email(doc, method=None):
         currency=currency
     )
 
-    # ---------------------------------------------------------
-    # REPAYMENT DETAILS FROM LOAN
-    # ---------------------------------------------------------
+    
 
     repayment_start_date = "-"
 
@@ -264,12 +244,9 @@ def send_loan_disbursement_email(doc, method=None):
         or "-"
     )
 
-    # repayment_periods is the tenure
     tenure = doc.repayment_periods or 0
 
-    # ---------------------------------------------------------
-    # EMAIL
-    # ---------------------------------------------------------
+    
 
     subject = f"Loan Sanctioned and Disbursed - {doc.name}"
 
@@ -365,7 +342,6 @@ def send_loan_disbursement_email(doc, method=None):
     </p>
     """
 
-    # Send email
     frappe.sendmail(
         recipients=[email],
         subject=subject,
