@@ -49,7 +49,8 @@ doctype_js = {
     "Employee Advance": "public/js/employee_advance.js",
     "ToDo": "public/js/todo_user_search.js",
     "Project": "public/js/site_activities.js",
-    "Payroll Settings": "public/js/payroll_settings.js"
+    "Payroll Settings": "public/js/payroll_settings.js",
+    "Bulk Salary Structure Assignment": "public/js/bulk_salary_structure_assignment.js",
 }
 
 
@@ -146,7 +147,8 @@ override_doctype_class = {
     "Shift Type": "builder_erpgulf.overrides.shift_type.SameDayAbsentShiftType",
 	"Attendance": "builder_erpgulf.overrides.overtime.Attendance",
     "Overtime Slip": "builder_erpgulf.overrides.overtime_slip.CustomOvertimeSlip",
-    "Salary Slip": "builder_erpgulf.overrides.salary_slip.CustomSalarySlip"
+    "Salary Slip": "builder_erpgulf.overrides.salary_slip.CustomSalarySlip",
+    "Bulk Salary Structure Assignment": "builder_erpgulf.overrides.bulk_salary_structure_assignment.CustomBulkSalaryStructureAssignment",
 }
 
 
