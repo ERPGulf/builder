@@ -1,22 +1,38 @@
 import frappe
+from frappe.utils import flt
+
 
 def calculate_gross_salary(doc, method):
-    base = doc.base or 0
-    food = doc.custom_food_allowance or 0
-    transport = doc.custom_transport_allowance or 0
-    variable = doc.variable or 0
-    accomodation = doc.custom_accomodation or 0
-    special = doc.custom_special or 0
-    allowance = doc.custom_allowance or 0
-    mobile = doc.custom_mobile_allowance or 0
-    hra = doc.custom_hra or 0
+    base = flt(doc.base)
+    food = flt(doc.custom_food_allowance)
+    transport = flt(doc.custom_transport_allowance)
+    variable = flt(doc.variable)
+    accomodation = flt(doc.custom_accomodation)
+    special = flt(doc.custom_special)
+    allowance = flt(doc.custom_allowance)
+    mobile = flt(doc.custom_mobile_allowance)
+    hra = flt(doc.custom_hra)
 
-    gross_salary = base + food + transport + variable + accomodation + special + allowance + mobile + hra
-    doc.gross_salary = gross_salary 
+    gross_salary = (
+        base
+        + food
+        + transport
+        + variable
+        + accomodation
+        + special
+        + allowance
+        + mobile
+        + hra
+    )
+
+    doc.gross_salary = gross_salary
     doc.annual_gross_earning = gross_salary * 12
     doc.ctc = doc.annual_gross_earning
 
-    frappe.msgprint(f"Gross Salary Calculated: {gross_salary}", alert=True)
+    frappe.msgprint(
+        f"Gross Salary Calculated: {gross_salary}",
+        alert=True
+    )
 
 
 
