@@ -89,21 +89,38 @@ class SameDayAbsentShiftType(ShiftType):
     # Draft Attendance Request Check
     # ---------------------------------------------------------
 
-    def has_draft_attendance_request(self, employee, attendance_date):
+    def has_pending_attendance_request(self, employee, attendance_date):
         """
-        Check whether the employee has a Draft Attendance Request
-        covering the attendance date.
+        Check if the employee has an Attendance Request covering the date
+        which is still pending, including workflow pending states.
         """
 
-        return frappe.db.exists(
+        requests = frappe.get_all(
             "Attendance Request",
-            {
+            filters={
                 "employee": employee,
                 "from_date": ["<=", attendance_date],
                 "to_date": [">=", attendance_date],
-                "docstatus": 0,
+                "docstatus": ["<", 2],
             },
+            fields=[
+                "name",
+                "docstatus",
+                "workflow_state",
+            ],
         )
+
+        for request in requests:
+
+            # Submitted request → allow normal Attendance Request processing
+            if request.docstatus == 1:
+                continue
+
+            # Draft / Workflow Pending → block auto attendance
+            if request.docstatus == 0:
+                return True
+
+        return False
 
     # ---------------------------------------------------------
     # SAME-DAY ABSENT OVERRIDE
@@ -195,9 +212,9 @@ class SameDayAbsentShiftType(ShiftType):
             # Request for this employee/date is still Draft.
             # -------------------------------------------------
 
-            if self.has_draft_attendance_request(
+            if self.has_pending_attendance_request(
                 employee,
-                attendance_date,
+                date,
             ):
                 continue
 
@@ -326,7 +343,7 @@ class SameDayAbsentShiftType(ShiftType):
             # still Draft.
             # -------------------------------------------------
 
-            if self.has_draft_attendance_request(
+            if self.has_pending_attendance_request(
                 employee,
                 date,
             ):
