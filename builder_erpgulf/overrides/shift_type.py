@@ -214,7 +214,7 @@ class SameDayAbsentShiftType(ShiftType):
 
             if self.has_pending_attendance_request(
                 employee,
-                date,
+                attendance_date,
             ):
                 continue
 
