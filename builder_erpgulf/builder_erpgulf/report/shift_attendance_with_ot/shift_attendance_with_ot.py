@@ -187,7 +187,6 @@ def sort_data_consecutively(data):
 
     return dated_rows + total_rows
 
-
 def get_data(filters):
     data = get_attendance_with_checkins(filters)
     data = update_data(data, filters)
@@ -198,7 +197,9 @@ def get_data(filters):
     for d in data:
         d.day = d.attendance_date.strftime("%A") if d.attendance_date else ""
 
-    data = add_weekend_records(data, filters)
+    # Do not add Weekend records when Show Absent Only is enabled
+    if not cint(filters.get("only_absent")):
+        data = add_weekend_records(data, filters)
 
     for d in data:
         if d.status != "Weekend" and d.status not in ("Present", "Half Day"):
@@ -461,6 +462,7 @@ def get_attendance_with_checkins(filters):
 	return result
 
 
+
 def get_base_attendance_query(filters):
 	attendance = frappe.qb.DocType("Attendance")
 	shift_type = frappe.qb.DocType("Shift Type")
@@ -479,7 +481,7 @@ def get_base_attendance_query(filters):
 			attendance.in_time,
 			attendance.out_time,
 			attendance.working_hours,
-            attendance.overtime_hours,
+			attendance.overtime_hours,
 			attendance.custom_break_hours,
 			attendance.late_entry,
 			attendance.early_exit,
@@ -490,20 +492,37 @@ def get_base_attendance_query(filters):
 		.groupby(attendance.name)
 	)
 
+	# Apply report filters
 	for field in filters:
 		if field == "from_date":
 			query = query.where(attendance.attendance_date >= filters.from_date)
+
 		elif field == "to_date":
 			query = query.where(attendance.attendance_date <= filters.to_date)
-		elif field in ["consider_grace_period", "include_attendance_without_checkins"]:
-			continue
-		else:
-			query = query.where(attendance[field] == filters[field])
 
-	query = query.where(Criterion.all(build_qb_match_conditions("Attendance")))
+		elif field in [
+			"consider_grace_period",
+			"include_attendance_without_checkins",
+			"only_absent",
+		]:
+			continue
+
+		else:
+			# Avoid applying empty filters
+			if filters.get(field):
+				query = query.where(attendance[field] == filters[field])
+
+	# Show only Absent records when checkbox is enabled
+	if cint(filters.get("only_absent")):
+		query = query.where(attendance.status == "Absent")
+
+	query = query.where(
+		Criterion.all(build_qb_match_conditions("Attendance"))
+	)
+
 	return query
 
-
+	
 def get_attendance_without_checkins(filters):
 	attendance = frappe.qb.DocType("Attendance")
 	checkin = frappe.qb.DocType("Employee Checkin")

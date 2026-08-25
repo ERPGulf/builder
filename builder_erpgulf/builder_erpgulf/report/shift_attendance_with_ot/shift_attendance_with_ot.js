@@ -62,6 +62,12 @@ frappe.query_reports["Shift Attendance with OT"] = {
 			fieldtype: "Check",
 			default: 0,
 		},
+		{
+			fieldname: "only_absent",
+			label: __("Show Absent Only"),
+			fieldtype: "Check",
+			default: 0,
+		},
 	],
 	formatter: (value, row, column, data, default_formatter) => {
 		value = default_formatter(value, row, column, data);
