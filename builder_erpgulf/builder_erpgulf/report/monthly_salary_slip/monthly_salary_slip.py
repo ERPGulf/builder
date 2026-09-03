@@ -91,6 +91,10 @@ def execute(filters=None):
 				"total_loan_repayment",
 				0,
 			),
+			"custom_wps": ss.custom_wps,
+			"custom_cash": ss.custom_cash,
+			"custom_cash_from_out_site": ss.custom_cash_from_out_site,
+			"custom_cash_from_project": ss.custom_cash_from_project,
 		}
 
 		# -----------------------------------------------------
@@ -727,6 +731,34 @@ def get_columns(
 				"fieldname": "currency",
 				"fieldtype": "Data",
 				"hidden": 1,
+			},
+			{
+				"label": _("WPS"),
+				"fieldname": "custom_wps",
+				"fieldtype": "Currency",
+				"options": "currency",
+				"width": 120,
+			},
+			{
+				"label": _("Cash"),
+				"fieldname": "custom_cash",
+				"fieldtype": "Currency",
+				"options": "currency",
+				"width": 120,
+			},
+			{
+				"label": _("Cash From Out Site"),
+				"fieldname": "custom_cash_from_out_site",
+				"fieldtype": "Currency",
+				"options": "currency",
+				"width": 150,
+			},
+			{
+				"label": _("Cash From Project"),
+				"fieldname": "custom_cash_from_project",
+				"fieldtype": "Currency",
+				"options": "currency",
+				"width": 150,
 			},
 		]
 	)
