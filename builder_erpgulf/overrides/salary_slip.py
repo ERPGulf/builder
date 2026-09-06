@@ -308,8 +308,6 @@ class CustomSalarySlip(SalarySlip):
 
 
     def after_insert(self):
-        super().after_insert()
-
         if self.salary_structure != "TDI - SALARY STRUCTURE - WORKERS":
             return
 
@@ -323,5 +321,3 @@ class CustomSalarySlip(SalarySlip):
             },
             update_modified=False,
         )
-
-        
