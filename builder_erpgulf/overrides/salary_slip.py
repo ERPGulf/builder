@@ -305,3 +305,23 @@ class CustomSalarySlip(SalarySlip):
 
         # Normal HRMS calculation for earnings
         super().calculate_component_amounts(component_type)
+
+
+    def after_insert(self):
+        super().after_insert()
+
+        if self.salary_structure != "TDI - SALARY STRUCTURE - WORKERS":
+            return
+
+        wps = 1000
+        cash = flt(self.net_pay) - wps
+
+        self.db_set(
+            {
+                "custom_wps": wps,
+                "custom_cash": cash,
+            },
+            update_modified=False,
+        )
+
+        
