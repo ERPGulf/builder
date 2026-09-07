@@ -307,17 +307,17 @@ class CustomSalarySlip(SalarySlip):
         super().calculate_component_amounts(component_type)
 
 
-    def after_insert(self):
-        if self.salary_structure != "TDI - SALARY STRUCTURE - WORKERS":
-            return
+    # def after_insert(self):
+    #     if self.salary_structure != "TDI - SALARY STRUCTURE - WORKERS":
+    #         return
 
-        wps = 1000
-        cash = flt(self.net_pay) - wps
+    #     wps = 1000
+    #     cash = flt(self.net_pay) - wps
 
-        self.db_set(
-            {
-                "custom_wps": wps,
-                "custom_cash": cash,
-            },
-            update_modified=False,
-        )
+    #     self.db_set(
+    #         {
+    #             "custom_wps": wps,
+    #             "custom_cash": cash,
+    #         },
+    #         update_modified=False,
+    #     )
