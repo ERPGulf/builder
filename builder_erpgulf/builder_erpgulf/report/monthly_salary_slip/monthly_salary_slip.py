@@ -132,15 +132,47 @@ def execute(filters=None):
 		)
 
 		for component in additional_components:
-			fieldname = get_component_fieldname(
-				"additional",
+
+			additional_data = employee_additional.get(
 				component,
+				{}
 			)
 
-			row[fieldname] = flt(
-				employee_additional.get(component, 0)
+			# Additional Salary amount
+			row[
+				get_component_fieldname(
+					"additional",
+					component,
+				)
+			] = flt(
+				additional_data.get("amount", 0)
 			)
 
+			# Peak Overtime Hours
+			row[
+				get_component_fieldname(
+					"additional_peak_overtime_hours",
+					component,
+				)
+			] = flt(
+				additional_data.get(
+					"peak_overtime_hours",
+					0
+				)
+			)
+
+			# Holiday Overtime Hours
+			row[
+				get_component_fieldname(
+					"additional_holiday_overtime_hours",
+					component,
+				)
+			] = flt(
+				additional_data.get(
+					"holiday_overtime_hours",
+					0
+				)
+			)
 		# -----------------------------------------------------
 		# Total Deduction / Net Pay
 		# -----------------------------------------------------
@@ -424,12 +456,15 @@ def get_additional_salary_details(
 	salary_slips,
 	filters,
 ):
-
 	"""
 	Get submitted Additional Salary records for the employee
-	and the selected salary period.
+	and selected salary period.
 
-	The date is based on Additional Salary.payroll_date.
+	If Additional Salary references an Overtime Slip,
+	fetch:
+	- custom_total_peak_overtime_hours
+	- custom_total_holiday_overtime_hours
+	from the referenced Overtime Slip.
 	"""
 
 	employees = {
@@ -453,6 +488,8 @@ def get_additional_salary_details(
 			additional_salary.salary_component,
 			additional_salary.amount,
 			additional_salary.payroll_date,
+			additional_salary.ref_doctype,
+			additional_salary.ref_docname,
 		)
 		.where(
 			additional_salary.employee.isin(
@@ -478,23 +515,94 @@ def get_additional_salary_details(
 
 	result = query.run(as_dict=True)
 
+	# ---------------------------------------------------------
+	# Collect referenced Overtime Slips
+	# ---------------------------------------------------------
+
+	overtime_slips = {
+		row.ref_docname
+		for row in result
+		if row.ref_doctype == "Overtime Slip"
+		and row.ref_docname
+	}
+
+	overtime_map = {}
+
+	if overtime_slips:
+		overtime_data = frappe.get_all(
+			"Overtime Slip",
+			filters={
+				"name": ["in", list(overtime_slips)]
+			},
+			fields=[
+				"name",
+				"custom_total_peak_overtime_hours",
+				"custom_total_holiday_overtime_hours",
+			],
+		)
+
+		overtime_map = {
+			row.name: row
+			for row in overtime_data
+		}
+
+	# ---------------------------------------------------------
+	# Build Additional Salary map
+	# ---------------------------------------------------------
+
 	result_map = {}
 
 	for row in result:
 
+		employee = row.employee
+		component = row.salary_component
+
 		result_map.setdefault(
-			row.employee,
-			{},
+			employee,
+			{}
 		)
 
-		result_map[row.employee].setdefault(
-			row.salary_component,
-			0,
+		result_map[employee].setdefault(
+			component,
+			{
+				"amount": 0,
+				"peak_overtime_hours": 0,
+				"holiday_overtime_hours": 0,
+			}
 		)
 
-		result_map[row.employee][
-			row.salary_component
-		] += flt(row.amount)
+		# Additional Salary amount
+		result_map[employee][component]["amount"] += flt(
+			row.amount
+		)
+
+		# -----------------------------------------------------
+		# Only fetch overtime hours when ref_doctype is
+		# Overtime Slip
+		# -----------------------------------------------------
+
+		if (
+			row.ref_doctype == "Overtime Slip"
+			and row.ref_docname
+		):
+
+			overtime = overtime_map.get(
+				row.ref_docname
+			)
+
+			if overtime:
+
+				result_map[employee][component][
+					"peak_overtime_hours"
+				] += flt(
+					overtime.custom_total_peak_overtime_hours
+				)
+
+				result_map[employee][component][
+					"holiday_overtime_hours"
+				] += flt(
+					overtime.custom_total_holiday_overtime_hours
+				)
 
 	return result_map
 
@@ -678,12 +786,15 @@ def get_columns(
 		}
 	)
 
+	
+
 	# ---------------------------------------------------------
 	# Additional Salary components
 	# ---------------------------------------------------------
 
 	for component in additional_components:
 
+		# Additional Salary Amount
 		columns.append(
 			{
 				"label": _("Additional - {0}").format(
@@ -696,6 +807,36 @@ def get_columns(
 				"fieldtype": "Currency",
 				"options": "currency",
 				"width": 140,
+			}
+		)
+
+		# Peak Overtime Hours
+		columns.append(
+			{
+				"label": _("Peak OT Hours - {0}").format(
+					component
+				),
+				"fieldname": get_component_fieldname(
+					"additional_peak_overtime_hours",
+					component,
+				),
+				"fieldtype": "Float",
+				"width": 130,
+			}
+		)
+
+		# Holiday Overtime Hours
+		columns.append(
+			{
+				"label": _("Holiday OT Hours - {0}").format(
+					component
+				),
+				"fieldname": get_component_fieldname(
+					"additional_holiday_overtime_hours",
+					component,
+				),
+				"fieldtype": "Float",
+				"width": 150,
 			}
 		)
 
