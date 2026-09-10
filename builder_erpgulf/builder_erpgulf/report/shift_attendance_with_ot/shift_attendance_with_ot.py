@@ -61,6 +61,13 @@ def get_columns():
 			"width": 80,
 		},
 		{
+			"label": _("Leave Type"),
+			"fieldname": "leave_type",
+			"fieldtype": "Link",
+			"options": "Leave Type",
+			"width": 150,
+		},
+		{
 			"label": _("Shift Start Time"),
 			"fieldname": "shift_start",
 			"fieldtype": "Data",
@@ -478,6 +485,7 @@ def get_base_attendance_query(filters):
 			attendance.shift,
 			attendance.attendance_date,
 			attendance.status,
+			attendance.leave_type,
 			attendance.in_time,
 			attendance.out_time,
 			attendance.working_hours,
