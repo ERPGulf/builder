@@ -1,0 +1,166 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2026-09-15 06:56:50.993809",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "employee",
+  "naming_series",
+  "employee_name",
+  "designation",
+  "id_no",
+  "column_break_kioq",
+  "date",
+  "termination_effective_date",
+  "last_working_day",
+  "section_break_owjb",
+  "termination_reason",
+  "termination_reason_details",
+  "cc_personal_file",
+  "cc_project_department",
+  "cc_hr_department",
+  "column_break_jwhg",
+  "accounts_remarks",
+  "admin_manager_remarks",
+  "managing_director_remarks"
+ ],
+ "fields": [
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "label": "Employee",
+   "options": "Employee"
+  },
+  {
+   "fetch_from": "employee.employee_name",
+   "fieldname": "employee_name",
+   "fieldtype": "Data",
+   "label": "Employee Name",
+   "options": "Employee",
+   "read_only": 1
+  },
+  {
+   "fieldname": "id_no",
+   "fieldtype": "Data",
+   "label": "ID / Passport No"
+  },
+  {
+   "fieldname": "termination_effective_date",
+   "fieldtype": "Date",
+   "label": "Termination Effective Date"
+  },
+  {
+   "fieldname": "column_break_kioq",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "label": "Date"
+  },
+  {
+   "fetch_from": "employee.designation",
+   "fieldname": "designation",
+   "fieldtype": "Data",
+   "label": "Designation",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_working_day",
+   "fieldtype": "Date",
+   "label": "Last Working Day"
+  },
+  {
+   "fieldname": "section_break_owjb",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "termination_reason",
+   "fieldtype": "Data",
+   "label": "Reason for Termination"
+  },
+  {
+   "fieldname": "termination_reason_details",
+   "fieldtype": "Small Text",
+   "label": "Reason Details"
+  },
+  {
+   "fieldname": "column_break_jwhg",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "accounts_remarks",
+   "fieldtype": "Small Text",
+   "label": "Remarks by Accounts"
+  },
+  {
+   "fieldname": "admin_manager_remarks",
+   "fieldtype": "Small Text",
+   "label": "Remarks by Admin Manager"
+  },
+  {
+   "fieldname": "managing_director_remarks",
+   "fieldtype": "Small Text",
+   "label": "Remarks by Managing Director"
+  },
+  {
+   "default": "0",
+   "fieldname": "cc_personal_file",
+   "fieldtype": "Check",
+   "label": "CC: Personal File"
+  },
+  {
+   "default": "0",
+   "fieldname": "cc_project_department",
+   "fieldtype": "Check",
+   "label": "CC: Project Department"
+  },
+  {
+   "default": "0",
+   "fieldname": "cc_hr_department",
+   "fieldtype": "Check",
+   "label": "CC: HR Department"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "Series",
+   "no_copy": 1,
+   "options": "ET-.#####",
+   "set_only_once": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-15 07:15:24.180380",
+ "modified_by": "Administrator",
+ "module": "Builder ERPGulf",
+ "name": "Employee Termination",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "employee_name"
+}

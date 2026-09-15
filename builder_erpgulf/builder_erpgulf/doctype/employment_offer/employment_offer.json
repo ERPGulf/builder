@@ -1,0 +1,224 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2026-09-15 07:16:29.486908",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "candidate_name",
+  "passport_no",
+  "nationality",
+  "column_break_lcfd",
+  "date",
+  "designation",
+  "reports_to",
+  "company",
+  "section_break_lywt",
+  "basic_salary",
+  "food_allowance",
+  "special_allowance",
+  "medical_insurance_provided",
+  "accommodation_provided",
+  "transportation_provided",
+  "end_of_service_benefits",
+  "column_break_wtoj",
+  "air_passage_entitlement",
+  "overtime_applicable",
+  "working_hours",
+  "annual_leave_days",
+  "contract_period",
+  "probation_period_months",
+  "air_ticket_home_country",
+  "section_break_rbca",
+  "authorized_signatory",
+  "candidate_accepted",
+  "candidate_signature_date"
+ ],
+ "fields": [
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "Series",
+   "no_copy": 1,
+   "options": "EO-.#####",
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "candidate_name",
+   "fieldtype": "Data",
+   "label": "Candidate Name"
+  },
+  {
+   "fieldname": "passport_no",
+   "fieldtype": "Data",
+   "label": "Passport No"
+  },
+  {
+   "fieldname": "nationality",
+   "fieldtype": "Link",
+   "label": "Nationality",
+   "options": "Country"
+  },
+  {
+   "fieldname": "column_break_lcfd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "label": "Offer Date"
+  },
+  {
+   "fieldname": "designation",
+   "fieldtype": "Link",
+   "label": "Designation",
+   "options": "Designation"
+  },
+  {
+   "fieldname": "reports_to",
+   "fieldtype": "Data",
+   "label": "Reports To"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company"
+  },
+  {
+   "fieldname": "section_break_lywt",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "basic_salary",
+   "fieldtype": "Currency",
+   "label": "Basic Salary"
+  },
+  {
+   "fieldname": "food_allowance",
+   "fieldtype": "Currency",
+   "label": "Food Allowance"
+  },
+  {
+   "fieldname": "special_allowance",
+   "fieldtype": "Currency",
+   "label": "Special Allowance"
+  },
+  {
+   "default": "0",
+   "fieldname": "medical_insurance_provided",
+   "fieldtype": "Check",
+   "label": "Medical & Insurance Provided by Company"
+  },
+  {
+   "default": "0",
+   "fieldname": "accommodation_provided",
+   "fieldtype": "Check",
+   "label": "Accommodation Provided by Company"
+  },
+  {
+   "default": "0",
+   "fieldname": "transportation_provided",
+   "fieldtype": "Check",
+   "label": "Transportation Provided by Company"
+  },
+  {
+   "fieldname": "end_of_service_benefits",
+   "fieldtype": "Small Text",
+   "label": "End of Service Benefits"
+  },
+  {
+   "fieldname": "column_break_wtoj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "air_passage_entitlement",
+   "fieldtype": "Data",
+   "label": "Air Passage Entitlement"
+  },
+  {
+   "default": "0",
+   "fieldname": "overtime_applicable",
+   "fieldtype": "Check",
+   "label": "Overtime Applicable"
+  },
+  {
+   "fieldname": "working_hours",
+   "fieldtype": "Data",
+   "label": "Working Hours"
+  },
+  {
+   "fieldname": "annual_leave_days",
+   "fieldtype": "Data",
+   "label": "Annual Leave"
+  },
+  {
+   "fieldname": "contract_period",
+   "fieldtype": "Data",
+   "label": "Contract Period"
+  },
+  {
+   "fieldname": "probation_period_months",
+   "fieldtype": "Int",
+   "label": "Probation Period (Months)"
+  },
+  {
+   "fieldname": "air_ticket_home_country",
+   "fieldtype": "Data",
+   "label": "Home Country Air Ticket Entitlement"
+  },
+  {
+   "fieldname": "section_break_rbca",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "authorized_signatory",
+   "fieldtype": "Data",
+   "label": "Authorized Signatory"
+  },
+  {
+   "default": "0",
+   "fieldname": "candidate_accepted",
+   "fieldtype": "Check",
+   "label": "Candidate Accepted"
+  },
+  {
+   "fieldname": "candidate_signature_date",
+   "fieldtype": "Date",
+   "label": "Candidate Signature Date"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-15 11:52:28.586652",
+ "modified_by": "Administrator",
+ "module": "Builder ERPGulf",
+ "name": "Employment Offer",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "candidate_name"
+}

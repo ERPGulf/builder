@@ -1,0 +1,140 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2026-09-14 14:20:43.876730",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "employee",
+  "employee_name",
+  "designation",
+  "date_of_join",
+  "comments",
+  "remarks_by_am",
+  "remarks_by_gm",
+  "column_break_cene",
+  "date",
+  "project_atteched_to",
+  "status",
+  "remarks_by_pm",
+  "remarks_by_acc"
+ ],
+ "fields": [
+  {
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "label": "Date"
+  },
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "label": "Employee No",
+   "options": "Employee"
+  },
+  {
+   "fieldname": "project_atteched_to",
+   "fieldtype": "Data",
+   "label": "Project Atteched to"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Good\nAverage\nPoor"
+  },
+  {
+   "fieldname": "comments",
+   "fieldtype": "Small Text",
+   "label": "Comments"
+  },
+  {
+   "fieldname": "remarks_by_pm",
+   "fieldtype": "Small Text",
+   "label": "Remarks by the Project Manager"
+  },
+  {
+   "fieldname": "remarks_by_am",
+   "fieldtype": "Small Text",
+   "label": "Remarks by the Admin Manager"
+  },
+  {
+   "fieldname": "remarks_by_gm",
+   "fieldtype": "Small Text",
+   "label": "Remarks by the General Manager"
+  },
+  {
+   "fieldname": "remarks_by_acc",
+   "fieldtype": "Small Text",
+   "label": "Remarks by the Accountant"
+  },
+  {
+   "fetch_from": "employee.employee_name",
+   "fieldname": "employee_name",
+   "fieldtype": "Data",
+   "label": "Employee Name ",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "employee.designation",
+   "fieldname": "designation",
+   "fieldtype": "Data",
+   "label": "Designation",
+   "options": "Designation",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "employee.date_of_joining",
+   "fieldname": "date_of_join",
+   "fieldtype": "Date",
+   "label": "Date of Join",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_cene",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "Naming Series",
+   "no_copy": 1,
+   "options": "EC-.#####",
+   "print_hide": 1,
+   "report_hide": 1,
+   "set_only_once": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-14 17:02:48.607107",
+ "modified_by": "Administrator",
+ "module": "Builder ERPGulf",
+ "name": "Employee Clearance",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "employee_name"
+}
