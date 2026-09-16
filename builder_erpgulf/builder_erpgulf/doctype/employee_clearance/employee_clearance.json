@@ -20,7 +20,8 @@
   "project_atteched_to",
   "status",
   "remarks_by_pm",
-  "remarks_by_acc"
+  "remarks_by_acc",
+  "amended_from"
  ],
  "fields": [
   {
@@ -106,12 +107,23 @@
    "print_hide": 1,
    "report_hide": 1,
    "set_only_once": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Employee Clearance",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
+ "is_submittable": 1,
  "links": [],
- "modified": "2026-09-14 17:02:48.607107",
+ "modified": "2026-09-16 11:54:24.121126",
  "modified_by": "Administrator",
  "module": "Builder ERPGulf",
  "name": "Employee Clearance",
