@@ -111,19 +111,19 @@
   {
    "default": "0",
    "fieldname": "medical_insurance_provided",
-   "fieldtype": "Check",
+   "fieldtype": "Data",
    "label": "Medical & Insurance Provided by Company"
   },
   {
    "default": "0",
    "fieldname": "accommodation_provided",
-   "fieldtype": "Check",
+   "fieldtype": "Data",
    "label": "Accommodation Provided by Company"
   },
   {
    "default": "0",
    "fieldname": "transportation_provided",
-   "fieldtype": "Check",
+   "fieldtype": "Data",
    "label": "Transportation Provided by Company"
   },
   {
@@ -195,7 +195,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-15 11:52:28.586652",
+ "modified": "2026-09-16 15:31:11.315269",
  "modified_by": "Administrator",
  "module": "Builder ERPGulf",
  "name": "Employment Offer",
