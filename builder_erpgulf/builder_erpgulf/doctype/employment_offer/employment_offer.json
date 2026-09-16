@@ -20,6 +20,9 @@
   "basic_salary",
   "food_allowance",
   "special_allowance",
+  "is_medical_insurance_provided",
+  "is_accommodation_provided",
+  "is_transportation_provided",
   "medical_insurance_provided",
   "accommodation_provided",
   "transportation_provided",
@@ -111,19 +114,19 @@
   {
    "default": "0",
    "fieldname": "medical_insurance_provided",
-   "fieldtype": "Data",
+   "fieldtype": "Currency",
    "label": "Medical & Insurance Provided by Company"
   },
   {
    "default": "0",
    "fieldname": "accommodation_provided",
-   "fieldtype": "Data",
+   "fieldtype": "Currency",
    "label": "Accommodation Provided by Company"
   },
   {
    "default": "0",
    "fieldname": "transportation_provided",
-   "fieldtype": "Data",
+   "fieldtype": "Currency",
    "label": "Transportation Provided by Company"
   },
   {
@@ -190,12 +193,30 @@
    "fieldname": "candidate_signature_date",
    "fieldtype": "Date",
    "label": "Candidate Signature Date"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_medical_insurance_provided",
+   "fieldtype": "Check",
+   "label": "Medical & Insurance Provided by Company"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_accommodation_provided",
+   "fieldtype": "Check",
+   "label": "Accommodation Provided by Company"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_transportation_provided",
+   "fieldtype": "Check",
+   "label": "Transportation Provided by Company Copy"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-16 15:31:11.315269",
+ "modified": "2026-09-16 15:43:57.880356",
  "modified_by": "Administrator",
  "module": "Builder ERPGulf",
  "name": "Employment Offer",
