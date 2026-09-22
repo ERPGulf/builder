@@ -183,7 +183,7 @@ def execute(filters=None):
 			) * flt(ss.exchange_rate or 1)
 
 			row["net_pay"] = (
-				flt(ss.net_pay)
+				flt(ss.rounded_total)
 				* flt(ss.exchange_rate or 1)
 			)
 
@@ -193,7 +193,7 @@ def execute(filters=None):
 				+ flt(getattr(ss, "total_loan_repayment", 0))
 			)
 
-			row["net_pay"] = flt(ss.net_pay)
+			row["net_pay"] = flt(ss.rounded_total)
 
 		data.append(row)
 
