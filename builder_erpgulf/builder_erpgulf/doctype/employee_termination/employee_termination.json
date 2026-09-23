@@ -25,7 +25,8 @@
   "column_break_jwhg",
   "accounts_remarks",
   "admin_manager_remarks",
-  "managing_director_remarks"
+  "managing_director_remarks",
+  "amended_from"
  ],
  "fields": [
   {
@@ -132,12 +133,23 @@
    "no_copy": 1,
    "options": "ET-.#####",
    "set_only_once": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Employee Termination",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
+ "is_submittable": 1,
  "links": [],
- "modified": "2026-09-15 07:15:24.180380",
+ "modified": "2026-09-23 14:55:27.137742",
  "modified_by": "Administrator",
  "module": "Builder ERPGulf",
  "name": "Employee Termination",
