@@ -44,7 +44,7 @@
    "fieldname": "status",
    "fieldtype": "Select",
    "label": "Status",
-   "options": "Good\nAverage\nPoor"
+   "options": "\nGood\nAverage\nPoor"
   },
   {
    "fieldname": "comments",
@@ -123,7 +123,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-09-16 11:54:24.121126",
+ "modified": "2026-09-24 12:04:07.638843",
  "modified_by": "Administrator",
  "module": "Builder ERPGulf",
  "name": "Employee Clearance",
