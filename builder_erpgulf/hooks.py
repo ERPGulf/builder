@@ -304,3 +304,5 @@ fixtures = [
 override_whitelisted_methods = {
     "frappe.desk.form.assign_to.add": "builder_erpgulf.api.assign_to.add"
 }
+
+app_include_js = ["/assets/builder_erpgulf/js/report_signatories_bundle.js"]
