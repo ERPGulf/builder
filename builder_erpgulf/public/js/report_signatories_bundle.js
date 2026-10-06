@@ -1,26 +1,15 @@
 window.__report_signatories_loaded = true;
 
-const SIG_KEY = "report_signatories";
-const sig_state = { ids: {}, data: {}, pending: {}, active: false };
+const sig_state = { data: {}, active: false, dialog: null };
 
-function sig_saved() {
+async function sig_get(emp) {
+    if (!emp) return null;
     try {
-        return JSON.parse(localStorage.getItem(SIG_KEY)) || {};
+        const r = await frappe.db.get_value("Employee", emp, ["employee_name", "designation"]);
+        return r.message || null;
     } catch (e) {
-        return {};
+        return null;
     }
-}
-
-function sig_fetch(key, emp) {
-    sig_state.ids[key] = emp || "";
-    if (!emp) {
-        sig_state.data[key] = null;
-        return;
-    }
-    sig_state.pending[key] = frappe.db
-        .get_value("Employee", emp, ["employee_name", "designation"])
-        .then((r) => (sig_state.data[key] = r.message || null))
-        .catch(() => (sig_state.data[key] = null));
 }
 
 function sig_applies(opts) {
@@ -34,41 +23,21 @@ function sig_applies(opts) {
 }
 
 function sig_patch(opts) {
-    const saved = sig_saved();
-    sig_state.data = {};
-    sig_fetch("prepared_by", saved.prepared_by);
-    sig_fetch("approved_by", saved.approved_by);
-
     opts.fields = [
         ...opts.fields,
         { fieldtype: "Section Break", label: __("Signatories") },
-        {
-            fieldname: "prepared_by",
-            label: __("Prepared By"),
-            fieldtype: "Link",
-            options: "Employee",
-            default: saved.prepared_by,
-            onchange: function () {
-                sig_fetch("prepared_by", this.get_value());
-            },
-        },
+        { fieldname: "prepared_by", label: __("Prepared By"), fieldtype: "Link", options: "Employee" },
         { fieldtype: "Column Break" },
-        {
-            fieldname: "approved_by",
-            label: __("Approved By"),
-            fieldtype: "Link",
-            options: "Employee",
-            default: saved.approved_by,
-            onchange: function () {
-                sig_fetch("approved_by", this.get_value());
-            },
-        },
+        { fieldname: "approved_by", label: __("Approved By"), fieldtype: "Link", options: "Employee" },
     ];
 
     const original_action = opts.primary_action;
     opts.primary_action = async function (...args) {
-        await Promise.all(Object.values(sig_state.pending));
-        localStorage.setItem(SIG_KEY, JSON.stringify(sig_state.ids));
+        const d = sig_state.dialog;
+        sig_state.data = {
+            prepared_by: await sig_get(d && d.get_value("prepared_by")),
+            approved_by: await sig_get(d && d.get_value("approved_by")),
+        };
         sig_state.active = true;
         return original_action && original_action.apply(this, args);
     };
@@ -79,8 +48,10 @@ function sig_patch(opts) {
 const SigOriginalDialog = frappe.ui.Dialog;
 frappe.ui.Dialog = class extends SigOriginalDialog {
     constructor(opts) {
-        if (sig_applies(opts)) opts = sig_patch(opts);
+        const patched = sig_applies(opts);
+        if (patched) opts = sig_patch(opts);
         super(opts);
+        if (patched) sig_state.dialog = this;
     }
 };
 
